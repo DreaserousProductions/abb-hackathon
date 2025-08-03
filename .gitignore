@@ -1,0 +1,8 @@
+node_modules/
+bin/
+obj/
+__pycache__/
+
+*.pyc
+.env
+push.bat
