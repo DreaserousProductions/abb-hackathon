@@ -1,0 +1,97 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(var(--glass-blur));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.alert-box {
+    background: var(--grey-bold);
+    color: var(--text-light);
+    padding: 24px 28px;
+    border-radius: var(--rounded-md);
+    border: 1px solid var(--primary-glow);
+    box-shadow: 0 0 24px rgba(0, 255, 255, 0.1), 0 6px 30px rgba(0, 0, 0, 0.4);
+    max-width: 400px;
+    width: 92%;
+    text-align: center;
+
+    animation: fadeInUp 0.5s ease;
+
+    h3 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    p {
+        font-family: 'Anek Latin', sans-serif;
+        font-size: 14px;
+        color: var(--text-muted);
+
+        &.url {
+            font-size: 13px;
+            color: var(--lighter);
+            word-break: break-word;
+            margin: 2px 0 16px;
+            padding: 8px;
+            border-radius: var(--rounded-sm);
+            background: var(--bg-glass);
+            border: 1px solid var(--primary-glow);
+        }
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+
+        button {
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: var(--rounded-sm);
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border: none;
+        }
+
+        .cancel-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            border: 1px solid var(--light-grey);
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: var(--lighter);
+            }
+        }
+
+        .confirm-btn {
+            background: var(--primary);
+            color: var(--black);
+            box-shadow: 0 0 8px var(--primary-glow);
+
+            &:hover {
+                background: #ffffff;
+                color: var(--black);
+            }
+        }
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

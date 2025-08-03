@@ -1,0 +1,31 @@
+<div class="footer">
+    <div class="content container">
+        <div class="info">
+            <h1>Your main character era starts here.</h1>
+        </div>
+
+        <div class="btn" (click)="share()">
+            <p class="menu-item">
+                Share the ember&nbsp;&nbsp;&nbsp;↗
+            </p>
+        </div>
+        <p class="tiny">&#64;abb-hackathon</p>
+    </div>
+    <div class="trailblazer container">
+        <div class="trademark">
+            <p class="tiny">
+                Team 5 - Sentinels
+            </p>
+        </div>
+        <div class="socials">
+            <a href="https://github.com/DreaserousProductions/abb-hackathon">
+                <p class="tiny">GitHub</p>
+            </a>
+            <a href="https://github.com/DreaserousProductions/abb-hackathon">
+                <p class="tiny">GitHub</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<app-alert *ngFor="let alert of alerts" [message]="alert.message" (dismiss)="removeAlert(alert.id)"></app-alert>

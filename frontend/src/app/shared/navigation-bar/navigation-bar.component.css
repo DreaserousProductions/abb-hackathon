@@ -1,0 +1,301 @@
+/* ===========================================
+   NAVIGATION BAR - MAIN STRUCTURE
+   =========================================== */
+
+.navigation-bar {
+    margin: auto;
+    padding: 20px 0;
+    display: grid;
+    gap: 5px;
+    grid-template-columns: 6fr 7fr 6fr;
+    grid-template-rows: repeat(2, auto);
+    border-bottom: 1px solid var(--overlay-25);
+    align-items: center;
+    z-index: 9999;
+}
+
+.navigation-bar .logo {
+    justify-self: left;
+    cursor: pointer;
+}
+
+.navigation-bar .logo h3 {
+    text-shadow: none;
+}
+
+.navigation-bar .menu {
+    justify-self: center;
+}
+
+.navigation-bar .quick-links {
+    justify-self: right;
+}
+
+/* ===========================================
+   NAVIGATION BAR - MENU LISTS
+   =========================================== */
+
+.navigation-bar ul {
+    height: 100%;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    justify-items: center;
+}
+
+.navigation-bar .quick-links ul {
+    gap: 0;
+    grid-template-columns: repeat(1, 1fr);
+}
+
+.navigation-bar li:not(:has(button)) {
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .3s;
+}
+
+.navigation-bar li:not(:has(button)):hover {
+    background: var(--primary-glow);
+}
+
+/* ===========================================
+   FOCUS LINK BUTTON
+   =========================================== */
+
+.navigation-bar #focus-link {
+    padding: 12px 20px;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(2, auto);
+    align-items: center;
+    border-radius: 100px;
+    box-shadow: 0 0 15px var(--light);
+    background:
+        radial-gradient(ellipse 70px 35px at top left, var(--light), transparent 80%),
+        radial-gradient(ellipse 70px 35px at bottom right, var(--light), transparent 80%),
+        var(--black);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+}
+
+.navigation-bar #focus-link::before,
+.navigation-bar #focus-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 0.3s;
+}
+
+.navigation-bar #focus-link::before {
+    background:
+        radial-gradient(ellipse 70px 35px at top left, var(--light), transparent 80%),
+        radial-gradient(ellipse 70px 35px at bottom right, var(--light), transparent 80%);
+    opacity: 0.25;
+}
+
+.navigation-bar #focus-link::after {
+    background:
+        radial-gradient(ellipse 120px 60px at top left, var(--light), transparent 80%),
+        radial-gradient(ellipse 120px 60px at bottom right, var(--light), transparent 80%);
+    opacity: 0;
+}
+
+.navigation-bar #focus-link:hover::before {
+    opacity: 0;
+}
+
+.navigation-bar #focus-link:hover::after {
+    opacity: 1;
+}
+
+.navigation-bar #focus-link>* {
+    position: relative;
+    z-index: 1;
+}
+
+.navigation-bar #focus-link svg {
+    justify-self: right;
+    width: 18px;
+}
+
+.navigation-bar #focus-link p {
+    justify-self: left;
+    font-weight: 500;
+    color: var(--white);
+}
+
+/* ===========================================
+   MOBILE NAVIGATION - HIDDEN BY DEFAULT
+   =========================================== */
+
+.navigation-bar .mobile-bar {
+    display: none;
+}
+
+.navigation-bar .mobile-menu {
+    display: none;
+}
+
+/* ===========================================
+   BACKGROUND EFFECTS
+   =========================================== */
+
+/* Blurred Box */
+.blur {
+    position: fixed;
+    bottom: 0;
+    height: 80px;
+    width: 100%;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.7), black);
+    mask-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.7), black);
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* Animated Stripes */
+.stripes {
+    position: fixed;
+    bottom: 0;
+    height: 100vh;
+    width: 100%;
+    opacity: 0.02;
+    background-image: linear-gradient(0deg, var(--black) 50%, var(--primary) 50%);
+    background-size: 8px 8px;
+    z-index: 9999;
+    animation: moveDown 0.3s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes moveDown {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 8px;
+    }
+}
+
+/* ===========================================
+   MOBILE RESPONSIVE STYLES
+   =========================================== */
+
+@media only screen and (max-width: 810px) {
+    .navigation-bar {
+        position: fixed;
+        padding: 20px;
+        width: 100%;
+        height: 60px;
+        grid-template-columns: auto;
+        grid-template-rows: repeat(3, fit-content);
+        align-content: start;
+        gap: 50px;
+        background: var(--bg-dark);
+        overflow: hidden;
+        transition: height .3s;
+    }
+
+    .navigation-bar.active {
+        height: 100vh;
+    }
+
+    /* Hide desktop navigation elements */
+    .navigation-bar .logo,
+    .navigation-bar .menu,
+    .navigation-bar .quick-links {
+        display: none;
+    }
+
+    /* Show mobile navigation elements */
+    .navigation-bar .mobile-bar,
+    .navigation-bar .mobile-bar .logo,
+    .navigation-bar .mobile-menu {
+        display: block;
+    }
+
+    .navigation-bar .mobile-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* ===========================================
+       HAMBURGER MENU BUTTON
+       =========================================== */
+
+    .navigation-bar .hamburger-btn {
+        width: 25px;
+        height: 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    .navigation-bar .hamburger-btn .line {
+        width: 100%;
+        border: 1px solid var(--light);
+        transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .navigation-bar .bar1 {
+        transform-origin: top left;
+    }
+
+    .navigation-bar .bar3 {
+        transform-origin: bottom left;
+    }
+
+    /* Hamburger animation states */
+    .navigation-bar.active .bar1 {
+        transform: rotate(44deg);
+    }
+
+    .navigation-bar.active .bar2 {
+        opacity: 0;
+    }
+
+    .navigation-bar.active .bar3 {
+        transform: rotate(-44deg);
+    }
+
+    /* ===========================================
+       MOBILE MENU LAYOUT
+       =========================================== */
+
+    .navigation-bar .mobile-menu ul {
+        display: grid;
+        gap: 30px;
+        grid-template-columns: auto;
+        grid-template-rows: repeat(3, 45px);
+        align-items: center;
+        justify-items: center;
+    }
+
+    .navigation-bar .mobile-menu ul li,
+    .navigation-bar .mobile-menu ul li #focus-link {
+        width: fit-content;
+    }
+
+    .navigation-bar .mobile-menu ul li:not(:has(button)) {
+        width: 100%;
+        padding: 16px;
+        border-bottom: 1px solid var(--light);
+        border-radius: 0;
+        transition: none;
+    }
+
+    /* Override hover effects on mobile */
+    .navigation-bar li:not(:has(button)):hover {
+        background: transparent;
+    }
+}

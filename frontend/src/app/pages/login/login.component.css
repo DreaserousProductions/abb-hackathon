@@ -1,0 +1,227 @@
+.container {
+    margin: auto;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    position: relative;
+}
+
+/* ===========================================
+   LOGIN FORM STRUCTURE
+   =========================================== */
+
+.container .login {
+    background:
+        linear-gradient(135deg, var(--overlay-25) 0%, transparent 50%),
+        var(--bg-primary);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--overlay-25);
+    border-radius: var(--rounded-lg);
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.container .login::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--overlay-25) 0%, transparent 50%);
+    border-radius: var(--rounded-lg);
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.container .login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* ===========================================
+   FORM HEADER
+   =========================================== */
+
+.container .form-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.container .form-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--text-main) 0%, var(--text-muted) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.container .form-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+/* ===========================================
+   FORM FIELDS
+   =========================================== */
+
+.container .form-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.container .form-group label {
+    position: absolute;
+    top: 50%;
+    left: 18px;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-family: "Anek Latin", sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.container .form-group input {
+    width: 100%;
+    padding: 18px;
+    background: var(--overlay-25);
+    border: 1px solid var(--overlay-25);
+    border-radius: var(--rounded-md);
+    font-size: 0.95rem;
+    color: var(--text-main);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.container .form-group input::placeholder {
+    color: transparent;
+}
+
+.container .form-group input:focus {
+    outline: none;
+    border-color: var(--overlay-50);
+    background: var(--bg-primary);
+    box-shadow: 0 0 0 2px rgba(120, 119, 198, 0.1);
+}
+
+.container .form-group input:focus+label,
+.container .form-group input:not(:placeholder-shown)+label {
+    top: 6px;
+    left: 14px;
+    font-size: 0.7rem;
+    color: var(--overlay-75);
+    font-weight: 600;
+}
+
+/* ===========================================
+   SUBMIT BUTTON
+   =========================================== */
+
+.container .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background:
+        radial-gradient(ellipse 150px 75px at top left, var(--overlay-25), transparent 70%),
+        radial-gradient(ellipse 150px 75px at bottom right, var(--overlay-25), transparent 70%);
+    border: none;
+    border-radius: 50px;
+    color: var(--text-main);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 25px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.container .submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(ellipse 200px 100px at top left, var(--overlay-50), transparent 70%),
+        radial-gradient(ellipse 200px 100px at bottom right, var(--overlay-50), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.container .submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+}
+
+.container .submit-btn:hover::before {
+    opacity: 1;
+}
+
+.container .submit-btn:active {
+    transform: translateY(0);
+}
+
+.container .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.container .submit-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+/* ===========================================
+   RESPONSIVE DESIGN
+   =========================================== */
+
+@media only screen and (max-width: 810px) {
+    .container {
+        padding: 60px 20px 20px;
+    }
+
+    .container .login {
+        padding: 35px 30px;
+        max-width: 100%;
+    }
+
+    .container .form-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    .container .login {
+        padding: 30px 25px;
+    }
+
+    .container .form-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .container .form-group input {
+        padding: 16px;
+    }
+
+    .container .submit-btn {
+        padding: 15px;
+    }
+}

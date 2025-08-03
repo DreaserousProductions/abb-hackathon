@@ -1,0 +1,19 @@
+.container {
+    margin: auto;
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(circle at 50% 50vh, transparent 10%, var(--primary-glow) 15%, transparent 22%),
+        radial-gradient(circle at 50% 50vh, transparent 18%, var(--primary-glow) 25%, transparent 35%);
+    background-blend-mode: multiply;
+}
+
+@media only screen and (max-width: 810px) {
+    .container {
+        padding-top: 60px;
+    }
+}

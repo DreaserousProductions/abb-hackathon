@@ -1,0 +1,18 @@
+.container {
+    min-height: 100vh;
+    margin: auto;
+    padding: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-msg {
+    text-align: center;
+}
+
+.error-msg h1 {
+    font-size: 240px;
+    line-height: 1;
+}
