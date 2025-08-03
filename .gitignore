@@ -2,7 +2,9 @@ node_modules/
 bin/
 obj/
 __pycache__/
+.vscode/
 
 *.pyc
 .env
 push.bat
+package-lock.json
