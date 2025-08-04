@@ -48,7 +48,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseCors("AllowAngularApp"); // Apply CORS policy
 app.UseAuthentication();        // Enable authentication

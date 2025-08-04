@@ -1,0 +1,574 @@
+<div class="container">
+    <div class="upload-container">
+        <!-- Progress Steps -->
+        <div class="progress-bar">
+            <div *ngFor="let step of steps; let i = index" class="step" [class.active]="i === currentStep"
+                [class.completed]="i < currentStep" (click)="goToStep(i)">
+                <div class="step-number">{{ i + 1 }}</div>
+                <div class="step-label">{{ step.label }}</div>
+            </div>
+        </div>
+
+        <!-- Step Content -->
+        <div class="step-content">
+            <ng-container [ngSwitch]="currentStep">
+
+                <!-- Step 1: Upload Dataset -->
+                <div *ngSwitchCase="0" class="upload-step">
+                    <div class="step-header">
+                        <h2>Upload Dataset</h2>
+                        <p class="medium">Select your CSV file to begin the analysis process</p>
+                    </div>
+
+                    <!-- File Upload Area -->
+                    <div class="file-upload-area" [class.drag-over]="isDragOver" [class.file-uploaded]="selectedFile"
+                        (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+                        (click)="fileInput.click()">
+
+                        <div class="upload-icon" *ngIf="!selectedFile && !isUploading">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                            </svg>
+                        </div>
+
+                        <div class="upload-content" *ngIf="!selectedFile && !isUploading">
+                            <h4>Drag and drop your CSV file here</h4>
+                            <p class="reg">or click to browse files</p>
+                            <p class="italic">Only .csv files are accepted</p>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div class="loading-state" *ngIf="isUploading">
+                            <div class="spinner"></div>
+                            <h4>Processing your dataset...</h4>
+                            <p class="reg">Please wait while we analyze your data</p>
+                        </div>
+
+                        <!-- File Selected State -->
+                        <div class="file-selected" *ngIf="selectedFile && !isUploading">
+                            <div class="file-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                                    <polyline points="14,2 14,8 20,8" />
+                                    <line x1="16" y1="13" x2="8" y2="13" />
+                                    <line x1="16" y1="17" x2="8" y2="17" />
+                                    <line x1="10" y1="9" x2="8" y2="9" />
+                                </svg>
+                            </div>
+                            <div class="file-info">
+                                <h4>{{ selectedFile.name }}</h4>
+                                <p class="reg">{{ formatFileSize(selectedFile.size) }}</p>
+                            </div>
+                            <button class="remove-file" (click)="removeFile($event)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <input #fileInput type="file" accept=".csv" style="display: none" (change)="onFileSelected($event)">
+
+                    <!-- Error Message -->
+                    <div class="error-message" *ngIf="errorMessage">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        <p class="reg">{{ errorMessage }}</p>
+                    </div>
+
+                    <!-- Post-upload Info Summary Card -->
+                    <div class="summary-card" *ngIf="uploadResult && !isUploading">
+                        <div class="summary-header">
+                            <h3>Dataset Summary</h3>
+                            <div class="success-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-value">{{ uploadResult.totalRecords | number }}</div>
+                                <div class="summary-label">Total Records</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">{{ uploadResult.numColumns }}</div>
+                                <div class="summary-label">Columns</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">{{ (uploadResult.passRate * 100) | number:'1.1-1' }}%</div>
+                                <div class="summary-label">Pass Rate</div>
+                            </div>
+                            <div class="summary-item date-range">
+                                <div class="summary-value">{{ formatDateRange(uploadResult.dateRange) }}</div>
+                                <div class="summary-label">Date Range</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-secondary" [disabled]="isUploading" (click)="reset()">
+                            Reset
+                        </button>
+                        <button class="btn-primary" [disabled]="!uploadResult || isUploading" (click)="next()">
+                            Next: Define Ranges
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Pre-processing & Date Ranges -->
+                <div *ngSwitchCase="1" class="preprocessing-step">
+                    <div class="step-header">
+                        <h2>Define Analysis Periods</h2>
+                        <p class="medium">Segment your data into training, testing, and simulation periods</p>
+                    </div>
+
+                    <!-- Date Range Cards -->
+                    <div class="date-ranges-grid">
+                        <div class="date-range-card training" [class.invalid]="rangeValidation.training === false">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                                        <path d="M2 17l10 5 10-5" />
+                                        <path d="M2 12l10 5 10-5" />
+                                    </svg>
+                                </div>
+                                <h3>Training Period</h3>
+                                <p class="reg">Data used to train the model</p>
+                            </div>
+                            <div class="date-inputs">
+                                <div class="input-group">
+                                    <label>Start Date</label>
+                                    <input type="date" [(ngModel)]="dateRanges.training.start" [min]="getMinDate()"
+                                        [max]="getMaxDate()" (change)="validateDateRanges()">
+                                </div>
+                                <div class="input-group">
+                                    <label>End Date</label>
+                                    <input type="date" [(ngModel)]="dateRanges.training.end"
+                                        [min]="dateRanges.training.start || getMinDate()" [max]="getMaxDate()"
+                                        (change)="validateDateRanges()">
+                                </div>
+                            </div>
+                            <div class="range-summary" *ngIf="rangeValidation.training === true">
+                                <p class="reg">{{ rangeCounts.training | number }} records</p>
+                            </div>
+                        </div>
+
+                        <div class="date-range-card testing" [class.invalid]="rangeValidation.testing === false">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path
+                                            d="M9 11H5a2 2 0 00-2 2v5a2 2 0 002 2h14a2 2 0 002-2v-5a2 2 0 00-2-2h-4" />
+                                        <path d="M9 11V7a2 2 0 012-2h2a2 2 0 012 2v4" />
+                                    </svg>
+                                </div>
+                                <h3>Testing Period</h3>
+                                <p class="reg">Data used to evaluate model performance</p>
+                            </div>
+                            <div class="date-inputs">
+                                <div class="input-group">
+                                    <label>Start Date</label>
+                                    <input type="date" [(ngModel)]="dateRanges.testing.start"
+                                        [min]="dateRanges.training.end || getMinDate()" [max]="getMaxDate()"
+                                        (change)="validateDateRanges()">
+                                </div>
+                                <div class="input-group">
+                                    <label>End Date</label>
+                                    <input type="date" [(ngModel)]="dateRanges.testing.end"
+                                        [min]="dateRanges.testing.start || getMinDate()" [max]="getMaxDate()"
+                                        (change)="validateDateRanges()">
+                                </div>
+                            </div>
+                            <div class="range-summary" *ngIf="rangeValidation.testing === true">
+                                <p class="reg">{{ rangeCounts.testing | number }} records</p>
+                            </div>
+                        </div>
+
+                        <div class="date-range-card simulation" [class.invalid]="rangeValidation.simulation === false">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                    </svg>
+                                </div>
+                                <h3>Simulation Period</h3>
+                                <p class="reg">Data for real-time prediction simulation</p>
+                            </div>
+                            <div class="date-inputs">
+                                <div class="input-group">
+                                    <label>Start Date</label>
+                                    <input type="date" [(ngModel)]="dateRanges.simulation.start"
+                                        [min]="dateRanges.testing.end || getMinDate()" [max]="getMaxDate()"
+                                        (change)="validateDateRanges()">
+                                </div>
+                                <div class="input-group">
+                                    <label>End Date</label>
+                                    <input type="date" [(ngModel)]="dateRanges.simulation.end"
+                                        [min]="dateRanges.simulation.start || getMinDate()" [max]="getMaxDate()"
+                                        (change)="validateDateRanges()">
+                                </div>
+                            </div>
+                            <div class="range-summary" *ngIf="rangeValidation.simulation === true">
+                                <p class="reg">{{ rangeCounts.simulation | number }} records</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Validation Button -->
+                    <div class="validation-section">
+                        <button class="btn-validate" [disabled]="!canValidateRanges() || isValidatingRanges"
+                            (click)="validateRanges()">
+                            <span *ngIf="!isValidatingRanges">Validate Date Ranges</span>
+                            <span *ngIf="isValidatingRanges">
+                                <div class="spinner-small"></div>
+                                Validating...
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Timeline Visualization -->
+                    <div class="timeline-section" *ngIf="timelineData">
+                        <h4>Data Distribution Timeline</h4>
+                        <div class="timeline-chart">
+                            <div class="timeline-bar">
+                                <div *ngFor="let period of timelineData" class="timeline-segment"
+                                    [ngClass]="period.type" [style.width.%]="period.percentage">
+                                    <span class="segment-label">{{ period.label }}</span>
+                                    <span class="segment-count">{{ period.count | number }}</span>
+                                </div>
+                            </div>
+                            <div class="timeline-legend">
+                                <div class="legend-item training">
+                                    <div class="legend-color"></div>
+                                    <span>Training</span>
+                                </div>
+                                <div class="legend-item testing">
+                                    <div class="legend-color"></div>
+                                    <span>Testing</span>
+                                </div>
+                                <div class="legend-item simulation">
+                                    <div class="legend-color"></div>
+                                    <span>Simulation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-secondary" (click)="goToStep(0)">Back</button>
+                        <button class="btn-primary" [disabled]="!areRangesValid() || isValidatingRanges"
+                            (click)="next()">
+                            Next: Train Model
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Model Training -->
+                <div *ngSwitchCase="2" class="training-step">
+                    <div class="step-header">
+                        <h2>Train Machine Learning Model</h2>
+                        <p class="medium">Build and evaluate your predictive model using XGBoost</p>
+                    </div>
+
+                    <!-- Training Configuration -->
+                    <div class="training-config" *ngIf="!isTraining && !trainingResults">
+                        <div class="config-card">
+                            <h4>Model Configuration</h4>
+                            <div class="config-details">
+                                <div class="config-item">
+                                    <label>Algorithm</label>
+                                    <span>XGBoost Classifier</span>
+                                </div>
+                                <div class="config-item">
+                                    <label>Training Period</label>
+                                    <span>{{ formatDateRange(dateRanges.training) }}</span>
+                                </div>
+                                <div class="config-item">
+                                    <label>Testing Period</label>
+                                    <span>{{ formatDateRange(dateRanges.testing) }}</span>
+                                </div>
+                                <div class="config-item">
+                                    <label>Training Records</label>
+                                    <span>{{ rangeCounts.training | number }}</span>
+                                </div>
+                                <div class="config-item">
+                                    <label>Testing Records</label>
+                                    <span>{{ rangeCounts.testing | number }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Training Process -->
+                    <div class="training-process" *ngIf="isTraining">
+                        <div class="training-animation">
+                            <div class="neural-network">
+                                <div class="node-layer input">
+                                    <div class="node" *ngFor="let i of [1,2,3,4,5]"></div>
+                                </div>
+                                <div class="node-layer hidden">
+                                    <div class="node" *ngFor="let i of [1,2,3]"></div>
+                                </div>
+                                <div class="node-layer output">
+                                    <div class="node"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <h3>Training in Progress</h3>
+                        <p class="medium">Building your predictive model...</p>
+                        <div class="training-progress">
+                            <div class="progress-bar-training">
+                                <div class="progress-fill" [style.width.%]="trainingProgress"></div>
+                            </div>
+                            <p class="reg">{{ trainingProgress }}% complete</p>
+                        </div>
+                    </div>
+
+                    <!-- Training Results -->
+                    <div class="training-results" *ngIf="trainingResults && !isTraining">
+                        <div class="results-header">
+                            <h3>Model Performance</h3>
+                            <div class="success-badge">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12" />
+                                </svg>
+                                Training Complete
+                            </div>
+                        </div>
+
+                        <!-- Metrics Grid -->
+                        <div class="metrics-grid">
+                            <div class="metric-card accuracy">
+                                <div class="metric-value">{{ (trainingResults.metrics.accuracy * 100) | number:'1.1-1'
+                                    }}%</div>
+                                <div class="metric-label">Accuracy</div>
+                                <div class="metric-description">Overall correctness of predictions</div>
+                            </div>
+                            <div class="metric-card precision">
+                                <div class="metric-value">{{ (trainingResults.metrics.precision * 100) | number:'1.1-1'
+                                    }}%</div>
+                                <div class="metric-label">Precision</div>
+                                <div class="metric-description">Accuracy of positive predictions</div>
+                            </div>
+                            <div class="metric-card recall">
+                                <div class="metric-value">{{ (trainingResults.metrics.recall * 100) | number:'1.1-1' }}%
+                                </div>
+                                <div class="metric-label">Recall</div>
+                                <div class="metric-description">Percentage of positives identified</div>
+                            </div>
+                            <div class="metric-card f1">
+                                <div class="metric-value">{{ (trainingResults.metrics.f1Score * 100) | number:'1.1-1'
+                                    }}%</div>
+                                <div class="metric-label">F1-Score</div>
+                                <div class="metric-description">Balance of precision and recall</div>
+                            </div>
+                        </div>
+
+                        <!-- Feature Importance (XAI) -->
+                        <div class="xai-section" *ngIf="trainingResults.plots.featureImportance">
+                            <h4>Explainable AI - Feature Importance</h4>
+                            <p class="reg">Understanding what drives the model's predictions using SHAP values</p>
+                            <div class="feature-importance-plot">
+                                <img [src]="'data:image/png;base64,' + trainingResults.plots.featureImportance"
+                                    alt="SHAP Feature Importance Plot" class="shap-plot">
+                            </div>
+                        </div>
+
+                        <!-- Confusion Matrix -->
+                        <div class="confusion-matrix-section">
+                            <h4>Confusion Matrix</h4>
+                            <div class="confusion-matrix">
+                                <div class="matrix-cell true-positive">
+                                    <div class="cell-value">{{ confusionMatrix.truePositive }}</div>
+                                    <div class="cell-label">True Positive</div>
+                                </div>
+                                <div class="matrix-cell false-positive">
+                                    <div class="cell-value">{{ confusionMatrix.falsePositive }}</div>
+                                    <div class="cell-label">False Positive</div>
+                                </div>
+                                <div class="matrix-cell false-negative">
+                                    <div class="cell-value">{{ confusionMatrix.falseNegative }}</div>
+                                    <div class="cell-label">False Negative</div>
+                                </div>
+                                <div class="matrix-cell true-negative">
+                                    <div class="cell-value">{{ confusionMatrix.trueNegative }}</div>
+                                    <div class="cell-label">True Negative</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-secondary" [disabled]="isTraining" (click)="goToStep(1)">
+                            Back
+                        </button>
+                        <button class="btn-primary" *ngIf="!isTraining && !trainingResults" (click)="trainModel()">
+                            Start Training
+                        </button>
+                        <button class="btn-primary" *ngIf="trainingResults && !isTraining" (click)="next()">
+                            Next: Run Simulation
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Real-time Simulation -->
+                <div *ngSwitchCase="3" class="simulation-step">
+                    <div class="step-header">
+                        <h2>Real-time Quality Prediction</h2>
+                        <p class="medium">Watch your trained model make live predictions on streaming data</p>
+                    </div>
+
+                    <!-- Simulation Controls -->
+                    <div class="simulation-controls">
+                        <div class="control-panel">
+                            <div class="simulation-status" [ngClass]="simulationStatus">
+                                <div class="status-indicator"></div>
+                                <span>{{ getSimulationStatusText() }}</span>
+                            </div>
+                            <button class="btn-simulation" [ngClass]="simulationStatus" (click)="toggleSimulation()"
+                                [disabled]="simulationStatus === 'stopping'">
+                                {{ getSimulationButtonText() }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Live Statistics -->
+                    <div class="live-stats" *ngIf="simulationStatus !== 'idle'">
+                        <div class="stats-grid">
+                            <div class="stat-card total">
+                                <div class="stat-value">{{ simulationStats.totalPredictions | number }}</div>
+                                <div class="stat-label">Total Predictions</div>
+                            </div>
+                            <div class="stat-card pass">
+                                <div class="stat-value">{{ simulationStats.passCount | number }}</div>
+                                <div class="stat-label">Pass Predictions</div>
+                            </div>
+                            <div class="stat-card fail">
+                                <div class="stat-value">{{ simulationStats.failCount | number }}</div>
+                                <div class="stat-label">Fail Predictions</div>
+                            </div>
+                            <div class="stat-card accuracy">
+                                <div class="stat-value">{{ simulationStats.currentAccuracy | number:'1.1-1' }}%</div>
+                                <div class="stat-label">Current Accuracy</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Charts -->
+                    <div class="charts-section" *ngIf="simulationStatus !== 'idle'">
+                        <div class="charts-grid">
+                            <!-- Quality Predictions Timeline -->
+                            <div class="chart-card timeline">
+                                <h4>Real-time Quality Predictions</h4>
+                                <div class="chart-container">
+                                    <div class="prediction-timeline">
+                                        <div *ngFor="let point of realtimeData.slice(-50); let i = index"
+                                            class="timeline-point" [ngClass]="point.prediction"
+                                            [style.animation-delay]="i * 20 + 'ms'">
+                                        </div>
+                                    </div>
+                                    <div class="timeline-labels">
+                                        <span>Fail</span>
+                                        <span>Pass</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Confidence Distribution -->
+                            <div class="chart-card distribution">
+                                <h4>Prediction Confidence Distribution</h4>
+                                <div class="chart-container">
+                                    <div class="confidence-bars">
+                                        <div class="confidence-bar high" [style.height.%]="confidenceDistribution.high">
+                                            <span>{{ confidenceDistribution.high | number:'1.0-0' }}%</span>
+                                        </div>
+                                        <div class="confidence-bar medium"
+                                            [style.height.%]="confidenceDistribution.medium">
+                                            <span>{{ confidenceDistribution.medium | number:'1.0-0' }}%</span>
+                                        </div>
+                                        <div class="confidence-bar low" [style.height.%]="confidenceDistribution.low">
+                                            <span>{{ confidenceDistribution.low | number:'1.0-0' }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="confidence-labels">
+                                        <span>High (>90%)</span>
+                                        <span>Medium (70-90%)</span>
+                                        <span>Low (&lt;70%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Prediction Stream -->
+                    <div class="prediction-stream" *ngIf="simulationStatus !== 'idle'">
+                        <h4>Live Prediction Stream</h4>
+                        <div class="stream-container">
+                            <div class="stream-header">
+                                <span>Timestamp</span>
+                                <span>Prediction</span>
+                                <span>Confidence</span>
+                                <span>Status</span>
+                            </div>
+                            <div class="stream-data">
+                                <div *ngFor="let prediction of realtimeData.slice().reverse().slice(0, 10)"
+                                    class="stream-row" [ngClass]="prediction.prediction">
+                                    <span class="timestamp">{{ prediction.timestamp | date:'HH:mm:ss' }}</span>
+                                    <span class="prediction-value">{{ prediction.prediction | titlecase }}</span>
+                                    <span class="confidence">{{ (prediction.confidence * 100) | number:'1.1-1'
+                                        }}%</span>
+                                    <span class="status-badge" [ngClass]="prediction.prediction">
+                                        {{ prediction.prediction === 'pass' ? '✓' : '✗' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Complete Message -->
+                    <div class="simulation-complete" *ngIf="simulationStatus === 'completed'">
+                        <div class="complete-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="20,6 9,17 4,12" />
+                            </svg>
+                        </div>
+                        <h3>Simulation Completed</h3>
+                        <p class="medium">Successfully processed {{ simulationStats.totalPredictions }} predictions</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-secondary" [disabled]="simulationStatus === 'running'" (click)="goToStep(2)">
+                            Back
+                        </button>
+                        <button class="btn-primary" *ngIf="simulationStatus === 'completed'"
+                            (click)="resetSimulation()">
+                            Run New Simulation
+                        </button>
+                    </div>
+                </div>
+
+            </ng-container>
+        </div>
+    </div>
+</div>

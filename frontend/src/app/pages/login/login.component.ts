@@ -63,10 +63,9 @@ export class LoginComponent implements AfterViewInit {
           console.log('Login successful:', response);
 
           // Store token if needed
-          localStorage.setItem('jwt', response.token);
+          localStorage.setItem('authToken', response.token);
 
-          // Navigate to dashboard
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/upload']);
           this.isLoading = false;
         },
         error: (err) => {
@@ -78,9 +77,7 @@ export class LoginComponent implements AfterViewInit {
   }
 
   private handleLoginError(): void {
-    // Add error handling logic here
     console.error('Login failed');
-    // You could show an error message or toast
   }
 
   private initializeFocusEffects(): void {

@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using ABBHackathon.Models;
 
 namespace ABBHackathon.Controllers;
@@ -32,6 +33,14 @@ public class AuthController : ControllerBase
 
         var token = GenerateJwtToken(user);
         return Ok(new { token });
+    }
+
+    [Authorize]
+    [HttpGet("verify")]
+    public IActionResult VerifyToken()
+    {
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        return Ok(new { message = "Success", role });
     }
 
     private string GenerateJwtToken(User user)
