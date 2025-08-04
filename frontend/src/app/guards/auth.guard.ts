@@ -39,7 +39,7 @@ export const authGuard: CanActivateFn = (route, state) => {
     'Authorization': `Bearer ${token}`
   });
 
-  const verifyUrl = 'http://localhost:5000/api/Auth/verify';
+  const verifyUrl = '/api/Auth/verify';
 
   return http.get<any>(verifyUrl, { headers }).pipe(
     map(() => true),
