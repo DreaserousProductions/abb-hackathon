@@ -7,28 +7,28 @@ services:
       - "4200:80"
     depends_on:
       - backend
-    networks:
-      - abb-network
+    # networks:
+    #   - abb-network
 
   backend:
     build: ./backend
     ports:
       - "5000:5000"
-    depends_on:
-      - ml_service
-    networks:
-      - abb-network
-    volumes:
-      - ./data:/app/data
+    # depends_on:
+    #   - ml_service
+    # networks:
+    #   - abb-network
+    # volumes:
+    #   - ./data:/app/data
 
-  ml_service:
-    build: ./ml_service
-    ports:
-      - "8000:8000"
-    networks:
-      - abb-network
-    volumes:
-      - ./data:/app/data
+  # ml_service:
+  #   build: ./ml_service
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - abb-network
+  #   volumes:
+  #     - ./data:/app/data
 
 networks:
   abb-network:
