@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
-        policy.WithOrigins("http://localhost:4200") // Your Angular app's address
+        policy.WithOrigins("http://localhost:4200", "http://backend:5000", "http://localhost")  // Your Angular app's address
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -38,7 +38,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-builder.WebHost.UseUrls("http://localhost:5000");
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
