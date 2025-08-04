@@ -8,3 +8,4 @@ __pycache__/
 .env
 push.bat
 package-lock.json
+CNAME
