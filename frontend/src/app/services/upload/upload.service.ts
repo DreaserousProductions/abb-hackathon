@@ -1,11 +1,9 @@
-// src/app/services/upload.service.ts
-
-import { HttpClient, HttpHeaders, HttpEventType, HttpRequest, HttpEvent } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpRequest, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment.development';
 
-// --- INTERFACES ---
+// --- DATA UPLOAD & VALIDATION INTERFACES ---
 export interface DateRange {
   start: string;
   end: string;
@@ -31,14 +29,37 @@ export interface ValidateRangesResponse {
   training: { count: number };
   testing: { count: number };
   simulation: { count: number };
-  monthlyCounts: { [key: string]: number }; // e.g., { "2025-08": 1234 }
+  monthlyCounts: { [key: string]: number };
 }
+
+// --- NEW MODEL TRAINING INTERFACES ---
+export interface TrainingMetrics {
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
+  trueNegative: number;
+  falsePositive: number;
+  falseNegative: number;
+  truePositive: number;
+}
+
+export interface TrainingPlots {
+  featureImportance: string;
+}
+
+export interface TrainModelResponse {
+  metrics: TrainingMetrics;
+  plots: TrainingPlots;
+}
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class UploadService {
-  private apiUrl = `${environment.apiUrl}/Data`;
+  private dataApiUrl = `${environment.apiUrl}/Data`;
+  private modelApiUrl = `${environment.apiUrl}/Model`; // <-- New URL for the ModelController
 
   constructor(private http: HttpClient) { }
 
@@ -50,7 +71,7 @@ export class UploadService {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
-    const req = new HttpRequest('POST', `${this.apiUrl}/upload`, formData, {
+    const req = new HttpRequest('POST', `${this.dataApiUrl}/upload`, formData, {
       headers,
       reportProgress: true
     });
@@ -58,7 +79,6 @@ export class UploadService {
     return this.http.request<UploadResult>(req);
   }
 
-  // --- NEW VALIDATION METHOD ---
   validateDateRanges(
     datasetId: string,
     userId: string,
@@ -68,6 +88,20 @@ export class UploadService {
     const token = localStorage.getItem('authToken');
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
-    return this.http.post<ValidateRangesResponse>(`${this.apiUrl}/validate-ranges`, payload, { headers });
+    return this.http.post<ValidateRangesResponse>(`${this.dataApiUrl}/validate-ranges`, payload, { headers });
+  }
+
+  // --- NEW METHOD FOR MODEL TRAINING ---
+  trainModel(
+    datasetId: string,
+    userId: string,
+    dateRanges: DateRanges
+  ): Observable<TrainModelResponse> {
+    const payload = { datasetId, userId, dateRanges };
+    const token = localStorage.getItem('authToken');
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+
+    // Call the new /api/Model/train endpoint
+    return this.http.post<TrainModelResponse>(`${this.modelApiUrl}/train`, payload, { headers });
   }
 }

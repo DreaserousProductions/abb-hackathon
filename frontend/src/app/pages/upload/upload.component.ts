@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { UploadResult, UploadService, ValidateRangesResponse } from '../../services/upload/upload.service';
+import { TrainModelResponse, UploadResult, UploadService, ValidateRangesResponse } from '../../services/upload/upload.service';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 // Interfaces
 interface DateRange { start: string; end: string; }
@@ -53,7 +54,7 @@ export class UploadComponent implements OnDestroy {
   // Training state
   isTraining = false;
   trainingProgress = 0;
-  trainingResults: TrainingResult | null = null;
+  trainingResults: TrainModelResponse | null = null;
   confusionMatrix: ConfusionMatrix = { truePositive: 0, falsePositive: 0, trueNegative: 0, falseNegative: 0 };
 
   // Simulation state
@@ -529,48 +530,89 @@ export class UploadComponent implements OnDestroy {
   /**
    * Start model training process
    */
+  // async trainModel(): Promise<void> {
+  //   this.isTraining = true;
+  //   this.trainingProgress = 0;
+
+  //   try {
+  //     // Simulate training progress
+  //     this.progressInterval = setInterval(() => {
+  //       if (this.trainingProgress < 100) {
+  //         this.trainingProgress += Math.random() * 15;
+  //         if (this.trainingProgress > 100) {
+  //           this.trainingProgress = 100;
+  //         }
+  //       }
+  //     }, 200);
+
+  //     // Simulate training time
+  //     await this.delay(4000);
+
+  //     // Generate mock training results
+  //     this.trainingResults = {
+  //       metrics: {
+  //         accuracy: 0.92 + (Math.random() * 0.06), // 92-98%
+  //         precision: 0.89 + (Math.random() * 0.08), // 89-97%
+  //         recall: 0.87 + (Math.random() * 0.09), // 87-96%
+  //         f1Score: 0.88 + (Math.random() * 0.08) // 88-96%
+  //       },
+  //       plots: {
+  //         featureImportance: this.generateMockSHAPPlot()
+  //       }
+  //     };
+
+  //     // Generate confusion matrix
+  //     this.generateConfusionMatrix();
+
+  //   } catch (error) {
+  //     console.error('Training error:', error);
+  //   } finally {
+  //     this.isTraining = false;
+  //     this.trainingProgress = 100;
+  //     if (this.progressInterval) {
+  //       clearInterval(this.progressInterval);
+  //     }
+  //   }
+  // }
+
   async trainModel(): Promise<void> {
+    if (!this.uploadResult) {
+      return;
+    }
+
+    if (!this.uploadResult.datasetId || !this.uploadResult.userId || !this.uploadResult.dateRange) {
+      console.error('Cannot train model: Missing datasetId, userId, or date ranges.');
+      // You should show an error to the user here (e.g., using a toast/snackbar)
+      return;
+    }
+
     this.isTraining = true;
     this.trainingProgress = 0;
+    this.trainingResults = null; // Clear previous results
+
+    // A real API call doesn't provide granular progress easily.
+    // We'll show an initial progress and then jump to 100 on completion.
+    // For a better UX, consider an indeterminate progress bar in your HTML template.
+    this.trainingProgress = 10;
 
     try {
-      // Simulate training progress
-      this.progressInterval = setInterval(() => {
-        if (this.trainingProgress < 100) {
-          this.trainingProgress += Math.random() * 15;
-          if (this.trainingProgress > 100) {
-            this.trainingProgress = 100;
-          }
-        }
-      }, 200);
+      const response = await firstValueFrom(
+        this.uploadService.trainModel(this.uploadResult.datasetId, this.uploadResult.userId, this.dateRanges)
+      );
+      console.log(response);
+      this.trainingResults = response;
+      this.trainingProgress = 100;
 
-      // Simulate training time
-      await this.delay(4000);
-
-      // Generate mock training results
-      this.trainingResults = {
-        metrics: {
-          accuracy: 0.92 + (Math.random() * 0.06), // 92-98%
-          precision: 0.89 + (Math.random() * 0.08), // 89-97%
-          recall: 0.87 + (Math.random() * 0.09), // 87-96%
-          f1Score: 0.88 + (Math.random() * 0.08) // 88-96%
-        },
-        plots: {
-          featureImportance: this.generateMockSHAPPlot()
-        }
-      };
-
-      // Generate confusion matrix
-      this.generateConfusionMatrix();
+      // If you have other functions that depend on the results, call them here
+      this.generateConfusionMatrix(); // Assuming this function exists and uses this.trainingResults
 
     } catch (error) {
-      console.error('Training error:', error);
+      console.error('Training API call failed:', error);
+      // Display a user-friendly error message
+      // e.g., this.toastService.showError('Model training failed. Please try again.');
+      this.trainingProgress = 0; // Reset progress on error
     } finally {
       this.isTraining = false;
-      this.trainingProgress = 100;
-      if (this.progressInterval) {
-        clearInterval(this.progressInterval);
-      }
     }
   }
 
@@ -587,20 +629,23 @@ export class UploadComponent implements OnDestroy {
    * Generate mock confusion matrix data
    */
   private generateConfusionMatrix(): void {
-    const totalTest = this.rangeCounts.testing;
-    const accuracy = this.trainingResults?.metrics.accuracy || 0.92;
+    // Check if we have real results from the backend
+    if (!this.trainingResults) {
+      console.error("Cannot generate confusion matrix: training results are null.");
+      return;
+    }
 
-    const truePositive = Math.floor(totalTest * 0.4 * accuracy);
-    const trueNegative = Math.floor(totalTest * 0.6 * accuracy);
-    const falsePositive = Math.floor(totalTest * 0.05);
-    const falseNegative = totalTest - truePositive - trueNegative - falsePositive;
-
+    // Directly assign the real values from the API response
+    const metrics = this.trainingResults.metrics;
+    console.log(metrics);
     this.confusionMatrix = {
-      truePositive,
-      falsePositive,
-      trueNegative,
-      falseNegative
+      truePositive: metrics.truePositive,
+      falsePositive: metrics.falsePositive,
+      trueNegative: metrics.trueNegative,
+      falseNegative: metrics.falseNegative
     };
+
+    console.log("Generated real confusion matrix:", this.confusionMatrix);
   }
 
   // === SIMULATION FUNCTIONALITY (STEP 4) ===
