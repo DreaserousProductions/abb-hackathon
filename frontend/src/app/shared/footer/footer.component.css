@@ -71,7 +71,7 @@
 }
 
 .footer .trailblazer .socials p {
-    color: var(--white);
+    color: var(--text-main);
     cursor: pointer;
 }
 

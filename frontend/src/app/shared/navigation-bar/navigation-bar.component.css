@@ -255,17 +255,26 @@
         transform-origin: bottom left;
     }
 
-    /* Hamburger animation states */
-    .navigation-bar.active .bar1 {
-        transform: rotate(44deg);
-    }
-
     .navigation-bar.active .bar2 {
         opacity: 0;
     }
 
-    .navigation-bar.active .bar3 {
+    /* Hamburger animation states */
+    :host(.theme-new) .navigation-bar.active .bar1 {
+        transform: rotate(44deg);
+    }
+
+    :host(.theme-new) .navigation-bar.active .bar3 {
         transform: rotate(-44deg);
+    }
+
+    /* Hamburger animation states */
+    :host(.theme-legacy) .navigation-bar.active .bar1 {
+        transform: rotate(10deg);
+    }
+
+    :host(.theme-legacy) .navigation-bar.active .bar3 {
+        transform: rotate(-10deg);
     }
 
     /* ===========================================

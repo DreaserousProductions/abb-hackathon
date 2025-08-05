@@ -1,4 +1,4 @@
-<nav class="navigation-bar container">
+<nav class="navigation-bar container" [class.active]="isMenuOpen">
     <div class="logo">
         <h3 routerLink="/">
             Sentinels
@@ -6,13 +6,11 @@
     </div>
     <div class="menu">
         <ul>
-            <li routerLink="/about">
-                <p class="medium">
-                    About
-                </p>
-            </li>
             <li routerLink="/upload">
                 <p class="medium">Upload</p>
+            </li>
+            <li (click)="onLegacyButtonClick()">
+                <p class="medium">Legacy</p>
             </li>
         </ul>
     </div>
@@ -38,7 +36,7 @@
                 Sentinels
             </h3>
         </div>
-        <div class="hamburger-btn">
+        <div class="hamburger-btn" (click)="toggleMobileMenu()">
             <div class="line bar1"></div>
             <div class="line bar2"></div>
             <div class="line bar3"></div>
@@ -46,13 +44,11 @@
     </div>
     <div class="mobile-menu">
         <ul>
-            <li routerLink="/about">
-                <p class="medium">
-                    About
-                </p>
-            </li>
             <li routerLink="/upload">
                 <p class="medium">Upload</p>
+            </li>
+            <li (click)="onLegacyButtonClick()">
+                <p class="medium">Legacy</p>
             </li>
             <li>
                 <button id="focus-link" routerLink="/login">

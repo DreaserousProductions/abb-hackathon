@@ -9,6 +9,19 @@
     --black: #000000;
     --white: #ffffff;
 
+    /* ABB Brand Colors */
+    --abb-red: #ff0000;
+    --abb-blue: #0003cc;
+    --abb-dark-red: #e52b2b;
+    --abb-dark-blue: #001ba3;
+    --abb-light-red: #ff6969;
+    --abb-light-blue: #3341d6;
+
+    /* ABB Gradients */
+    --abb-gradient-primary: linear-gradient(to right, var(--abb-red), var(--abb-blue));
+    --abb-gradient-light: linear-gradient(to right, var(--abb-light-red), var(--abb-light-blue));
+    --abb-gradient-dark: linear-gradient(to right, var(--abb-dark-red), var(--abb-dark-blue));
+
     /* Background and Text */
     --bg-primary: #f8f9fa;
     --text-main: #0a0a0a;
@@ -40,7 +53,6 @@
     --bg-dark: var(--bg-primary);
     --primary: var(--text-main);
     --primary-glow: var(--overlay-25);
-    --light: var(--overlay-25);
 }
 
 .dark {
@@ -53,6 +65,18 @@
     --overlay-75: rgba(255, 255, 255, 0.75);
     --overlay-50: rgba(255, 255, 255, 0.5);
     --overlay-25: rgba(255, 255, 255, 0.25);
+}
+
+/* ABB Mode Overrides */
+.abb {
+    /* ABB specific background and text adjustments */
+    --primary: var(--abb-gradient-primary);
+    --primary-glow: var(--abb-gradient-light);
+}
+
+.abb.dark {
+    /* ABB dark mode adjustments */
+    --bg-primary: #1a1a1a;
 }
 
 html {
@@ -88,6 +112,27 @@ h4 {
     letter-spacing: -1px;
 }
 
+/* ABB Font Override - Switch to Poppins when .abb class is applied */
+.abb h1,
+.abb h2,
+.abb h3,
+.abb h4 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+}
+
+/* ABB Gradient Text for Headings */
+/* .abb h1,
+.abb h2,
+.abb h3,
+.abb h4 {
+    background: var(--abb-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+} */
+
 p {
     font-family: 'Anek Latin', sans-serif;
     font-weight: 400;
@@ -101,8 +146,16 @@ h1 {
     font-weight: 700;
 }
 
+.abb h1 {
+    font-weight: 600;
+}
+
 h2 {
     font-size: 50px;
+}
+
+.abb h2 {
+    font-weight: 500;
 }
 
 h3 {
@@ -130,6 +183,55 @@ p.italic {
 
 .container {
     max-width: 1200px;
+}
+
+/* ABB Utility Classes */
+.abb-gradient-bg {
+    background: var(--abb-gradient-primary);
+}
+
+.abb-gradient-light-bg {
+    background: var(--abb-gradient-light);
+}
+
+.abb-gradient-dark-bg {
+    background: var(--abb-gradient-dark);
+}
+
+.abb-gradient-text {
+    background: var(--abb-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.abb-red {
+    color: var(--abb-red);
+}
+
+.abb-blue {
+    color: var(--abb-blue);
+}
+
+.abb-red-bg {
+    background-color: var(--abb-red);
+}
+
+.abb-blue-bg {
+    background-color: var(--abb-blue);
+}
+
+/* ABB Button Styles */
+.abb .btn-primary {
+    background: var(--abb-gradient-primary);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.abb .btn-primary:hover {
+    background: var(--abb-gradient-dark);
+    transform: translateY(-2px);
 }
 
 @media only screen and (max-width: 1200px) {
@@ -168,6 +270,21 @@ p.italic {
 a {
     text-decoration: none;
     color: var(--text-light);
+}
+
+.abb a {
+    background: var(--abb-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s ease;
+}
+
+.abb a:hover {
+    background: var(--abb-gradient-dark);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 ul {

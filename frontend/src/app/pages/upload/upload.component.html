@@ -109,7 +109,7 @@
                                 <div class="summary-label">Columns</div>
                             </div>
                             <div class="summary-item">
-                                <div class="summary-value">{{ (uploadResult.passRate) | number:'1.1-1' }}%</div>
+                                <div class="summary-value">{{ (uploadResult.passRate) | number:'1.1-2' }}%</div>
                                 <div class="summary-label">Pass Rate</div>
                             </div>
                             <div class="summary-item date-range">
@@ -375,25 +375,25 @@
                         <!-- Metrics Grid -->
                         <div class="metrics-grid">
                             <div class="metric-card accuracy">
-                                <div class="metric-value">{{ (trainingResults.metrics.accuracy * 100) | number:'1.1-1'
+                                <div class="metric-value">{{ (trainingResults.metrics.accuracy * 100) | number:'1.1-2'
                                     }}%</div>
                                 <div class="metric-label">Accuracy</div>
                                 <div class="metric-description">Overall correctness of predictions</div>
                             </div>
                             <div class="metric-card precision">
-                                <div class="metric-value">{{ (trainingResults.metrics.precision * 100) | number:'1.1-1'
+                                <div class="metric-value">{{ (trainingResults.metrics.precision * 100) | number:'1.1-2'
                                     }}%</div>
                                 <div class="metric-label">Precision</div>
                                 <div class="metric-description">Accuracy of positive predictions</div>
                             </div>
                             <div class="metric-card recall">
-                                <div class="metric-value">{{ (trainingResults.metrics.recall * 100) | number:'1.1-1' }}%
+                                <div class="metric-value">{{ (trainingResults.metrics.recall * 100) | number:'1.1-2' }}%
                                 </div>
                                 <div class="metric-label">Recall</div>
                                 <div class="metric-description">Percentage of positives identified</div>
                             </div>
                             <div class="metric-card f1">
-                                <div class="metric-value">{{ (trainingResults.metrics.f1Score * 100) | number:'1.1-1'
+                                <div class="metric-value">{{ (trainingResults.metrics.f1Score * 100) | number:'1.1-2'
                                     }}%</div>
                                 <div class="metric-label">F1-Score</div>
                                 <div class="metric-description">Balance of precision and recall</div>
@@ -485,7 +485,7 @@
                                 <div class="stat-label">Fail Predictions</div>
                             </div>
                             <div class="stat-card accuracy">
-                                <div class="stat-value">{{ simulationStats.currentAccuracy | number:'1.1-1' }}%</div>
+                                <div class="stat-value">{{ simulationStats.currentAccuracy | number:'1.1-2' }}%</div>
                                 <div class="stat-label">Current Accuracy</div>
                             </div>
                         </div>
@@ -552,7 +552,7 @@
                                     class="stream-row" [ngClass]="prediction.prediction">
                                     <span class="timestamp">{{ prediction.timestamp | date:'HH:mm:ss' }}</span>
                                     <span class="prediction-value">{{ prediction.prediction | titlecase }}</span>
-                                    <span class="confidence">{{ (prediction.confidence * 100) | number:'1.1-1'
+                                    <span class="confidence">{{ (prediction.confidence * 100) | number:'1.1-2'
                                         }}%</span>
                                     <span class="status-badge" [ngClass]="prediction.isCorrect ? 'pass' : 'fail'">
                                         {{ prediction.isCorrect ? '✓' : '✗' }}

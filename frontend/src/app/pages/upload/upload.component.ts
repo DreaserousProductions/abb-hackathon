@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, HostBinding, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TrainModelResponse, UploadResult, UploadService, ValidateRangesResponse } from '../../services/upload/upload.service';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { SimulationMessage, SimulationResult, SimulationService } from '../../services/simulation/simulation.service';
+import { AppTheme, ThemeService } from '../../services/theme/theme.service';
 
 // Interfaces
 interface DateRange { start: string; end: string; }
@@ -25,7 +26,7 @@ type SimulationStatus = 'idle' | 'running' | 'stopping' | 'completed';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './upload.component.html',
-  styleUrl: './upload.component.css'
+  styleUrl: './comb-upload.component.css'
 })
 export class UploadComponent implements OnDestroy {
   // Step management
@@ -69,12 +70,26 @@ export class UploadComponent implements OnDestroy {
   private progressInterval: any;
 
   private simSubscription?: Subscription;
-  constructor(private uploadService: UploadService, private simulationService: SimulationService) { }
+  constructor(private uploadService: UploadService, private simulationService: SimulationService, private themeService: ThemeService) { }
+
+  @HostBinding('class') themeClass: string = 'theme-new';
+  private themeSubscription!: Subscription;
+
+  ngOnInit(): void {
+    // Subscribe to theme changes
+    this.themeSubscription = this.themeService.getTheme().subscribe((theme: AppTheme) => {
+      // Update the host class based on the current theme
+      this.themeClass = theme === 'legacy' ? 'theme-legacy' : 'theme-new';
+    });
+  }
 
   ngOnDestroy(): void {
     this.clearIntervals();
     this.simSubscription?.unsubscribe();
     this.simulationService.closeConnection();
+    if (this.themeSubscription) {
+      this.themeSubscription.unsubscribe();
+    }
   }
 
   private clearIntervals(): void {
@@ -190,30 +205,30 @@ export class UploadComponent implements OnDestroy {
   private uploadFile(file: File): void {
     this.isUploading = true;
     this.errorMessage = '';
+    this.uploadProgress = 0; // Start progress at 0
 
-    // Get the username from localStorage. Provide a fallback if it doesn't exist.
     const userId = localStorage.getItem('username') || 'anonymous_user';
 
-    // Pass the file and userId to the service
     this.uploadService.uploadFileWithProgress(file, userId).subscribe({
-      next: (event: HttpEvent<UploadResult>) => {
-        if (event.type === HttpEventType.UploadProgress) {
-          if (event.total) {
-            this.uploadProgress = Math.round(100 * event.loaded / event.total);
-          }
-        } else if (event.type === HttpEventType.Response) {
-          this.uploadResult = event.body;
-          console.log('Upload complete!', this.uploadResult);
-          this.uploadProgress = 0;
-        }
+      // FIX: The 'next' handler now receives the final UploadResult directly
+      next: (result: UploadResult) => {
+        // No need to check for event type. This code runs when the upload is complete.
+        this.uploadResult = result;
+        console.log('Upload complete!', this.uploadResult);
+
+        // Since we know it's complete, we can set progress to 100%
+        this.uploadProgress = 100;
       },
       error: (err) => {
         this.errorMessage = 'Failed to upload file. Please try again.';
         console.error('Upload error:', err);
         this.isUploading = false;
+        this.uploadProgress = 0; // Reset progress on error
       },
       complete: () => {
         this.isUploading = false;
+        // Optional: Reset progress to 0 a moment after completion
+        setTimeout(() => this.uploadProgress = 0, 2000);
       }
     });
   }

@@ -98,6 +98,51 @@ public class DataController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+
+    // NEW: Endpoint to handle individual chunks
+    [Authorize]
+    [HttpPost("upload-chunk")]
+    public async Task<IActionResult> UploadChunk([FromForm] ChunkUploadModel model)
+    {
+        using var content = new MultipartFormDataContent();
+        var streamContent = new StreamContent(model.File.OpenReadStream());
+        content.Add(streamContent, "file", "chunk"); // FastAPI doesn't need original filename here
+
+        content.Add(new StringContent(model.UploadId), "uploadId");
+        content.Add(new StringContent(model.ChunkIndex.ToString()), "chunkIndex");
+        content.Add(new StringContent(model.UserId), "userId");
+
+        var client = _httpClientFactory.CreateClient();
+        var response = await client.PostAsync($"{FastAPI_BaseUrl}/csv/upload-chunk", content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            return StatusCode((int)response.StatusCode, $"Chunk upload failed: {error}");
+        }
+        return Ok();
+    }
+
+    // NEW: Endpoint to finalize the upload
+    [Authorize]
+    [HttpPost("finish-upload")]
+    public async Task<IActionResult> FinishUpload([FromBody] FinishUploadRequest request)
+    {
+        var client = _httpClientFactory.CreateClient();
+        var jsonContent = JsonSerializer.Serialize(request, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var httpContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync($"{FastAPI_BaseUrl}/csv/finish-upload", httpContent);
+        
+        var responseContent = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            return StatusCode((int)response.StatusCode, responseContent);
+        }
+
+        var result = JsonSerializer.Deserialize<UploadResult>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return Ok(result);
+    }
 }
 
 // --- MODELS FOR REQUESTS AND RESPONSES ---
@@ -112,6 +157,7 @@ public class UploadResult
 {
     public string? DatasetId { get; set; }
     public string? UserId { get; set; }
+    public string? ParquetPath { get; set; }
     public int TotalRecords { get; set; }
     public int NumColumns { get; set; }
     public float PassRate { get; set; }
@@ -143,4 +189,21 @@ public class ValidateRangesResponse
 public class RangeCount
 {
     public int Count { get; set; }
+}
+
+// For Chunking
+public class ChunkUploadModel
+{
+    public IFormFile File { get; set; } = null!;
+    public string UploadId { get; set; } = null!;
+    public int ChunkIndex { get; set; }
+    public string UserId { get; set; } = null!;
+}
+
+public class FinishUploadRequest
+{
+    public string UploadId { get; set; } = null!;
+    public string FileName { get; set; } = null!;
+    public string UserId { get; set; } = null!;
+    public int TotalChunks { get; set; }
 }

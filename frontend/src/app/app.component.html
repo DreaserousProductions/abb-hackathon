@@ -1,3 +1,21 @@
-<app-navigation-bar></app-navigation-bar>
-<router-outlet></router-outlet>
-<app-footer></app-footer>
+<!-- Use ngSwitch bound to the theme$ observable -->
+<!-- The async pipe handles subscribing and unsubscribing automatically -->
+<header [ngSwitch]="theme$ | async">
+    <app-navigation-bar *ngSwitchCase="'new'"></app-navigation-bar>
+    <app-navigation-bar-legacy *ngSwitchCase="'legacy'"></app-navigation-bar-legacy>
+</header>
+
+<main>
+    <router-outlet></router-outlet>
+</main>
+
+<footer [ngSwitch]="theme$ | async">
+    <app-footer *ngSwitchCase="'new'"></app-footer>
+    <app-footer-legacy *ngSwitchCase="'legacy'"></app-footer-legacy>
+</footer>
+
+<!-- <app-navigation-bar></app-navigation-bar> -->
+<!-- <app-navigation-bar-legacy></app-navigation-bar-legacy> -->
+<!-- <router-outlet></router-outlet> -->
+<!-- <app-footer-legacy></app-footer-legacy> -->
+<!-- <app-footer></app-footer> -->
