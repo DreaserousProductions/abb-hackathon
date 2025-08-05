@@ -93,6 +93,10 @@
             color: #dc3545;
         }
 
+        .queries span {
+            color: blue;
+        }
+
         .controls {
             margin-bottom: 1rem;
             padding: 1rem;
@@ -122,7 +126,7 @@
                 <th>Assignee</th>
                 <th>Task Details & Goals</th>
                 <th>Status</th>
-                <th>Queries / Blockers</th>
+                <th>Queries</th>
             </tr>
         </thead>
         <tbody>
@@ -148,7 +152,7 @@
                 <td class="task-details">Create .NET endpoint. Receive `IFormFile`, act as orchestrator by forwarding
                     the file to the ML service. Await metadata response and pass it back to the frontend.</td>
                 <td class="status-completed">Completed</td>
-                <td class="queries">.</td>
+                <td class="queries"></td>
             </tr>
             <tr>
                 <td class="participant-ml"><strong>P3 (ML)</strong></td>
@@ -158,7 +162,7 @@
                     column. Calculate metadata (records, columns, pass rate, date range). Persist processed data
                     (Parquet). Return metadata JSON.</td>
                 <td class="status-completed">Completed</td>
-                <td class="queries">What storage method to use?</td>
+                <td class="queries">What storage method to use?<br><span>Suggesting Redis</span></td>
             </tr>
             <tr>
                 <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
