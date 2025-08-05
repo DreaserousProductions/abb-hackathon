@@ -4,6 +4,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { environment } from '../../environments/environment.development';
 
 function isTokenExpired(token: string): boolean {
   try {
@@ -39,7 +40,7 @@ export const authGuard: CanActivateFn = (route, state) => {
     'Authorization': `Bearer ${token}`
   });
 
-  const verifyUrl = '/api/Auth/verify';
+  const verifyUrl = `${environment.apiUrl}/Auth/verify`;
 
   return http.get<any>(verifyUrl, { headers }).pipe(
     map(() => true),

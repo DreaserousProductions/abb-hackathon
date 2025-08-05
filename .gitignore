@@ -4,6 +4,8 @@ obj/
 __pycache__/
 .vscode/
 
+ml_service/
+
 *.pyc
 .env
 push.bat

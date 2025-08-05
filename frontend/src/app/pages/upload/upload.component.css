@@ -412,7 +412,7 @@
 
 .date-inputs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: auto;
     gap: 1rem;
     margin-bottom: 1rem;
 }
@@ -432,7 +432,7 @@
     letter-spacing: 0.5px;
 }
 
-.input-group input[type="date"] {
+.input-group input[type="datetime-local"] {
     padding: 0.75rem;
     border: 1px solid var(--overlay-25);
     border-radius: var(--rounded-sm);
@@ -442,7 +442,7 @@
     transition: all 0.3s ease;
 }
 
-.input-group input[type="date"]:focus {
+.input-group input[type="datetime-local"]:focus {
     outline: none;
     border-color: var(--text-main);
     box-shadow: 0 0 0 3px var(--overlay-25);
@@ -465,6 +465,10 @@
 /* Validation Section */
 .validation-section {
     text-align: center;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
     margin: 2rem 0;
 }
 

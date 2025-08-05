@@ -106,7 +106,7 @@
                                 <div class="summary-label">Columns</div>
                             </div>
                             <div class="summary-item">
-                                <div class="summary-value">{{ (uploadResult.passRate * 100) | number:'1.1-1' }}%</div>
+                                <div class="summary-value">{{ (uploadResult.passRate) | number:'1.1-1' }}%</div>
                                 <div class="summary-label">Pass Rate</div>
                             </div>
                             <div class="summary-item date-range">
@@ -152,12 +152,12 @@
                             <div class="date-inputs">
                                 <div class="input-group">
                                     <label>Start Date</label>
-                                    <input type="date" [(ngModel)]="dateRanges.training.start" [min]="getMinDate()"
-                                        [max]="getMaxDate()" (change)="validateDateRanges()">
+                                    <input type="datetime-local" [(ngModel)]="dateRanges.training.start" step="1"
+                                        [min]="getMinDate()" [max]="getMaxDate()" (change)="validateDateRanges()">
                                 </div>
                                 <div class="input-group">
                                     <label>End Date</label>
-                                    <input type="date" [(ngModel)]="dateRanges.training.end"
+                                    <input type="datetime-local" [(ngModel)]="dateRanges.training.end" step="1"
                                         [min]="dateRanges.training.start || getMinDate()" [max]="getMaxDate()"
                                         (change)="validateDateRanges()">
                                 </div>
@@ -183,13 +183,13 @@
                             <div class="date-inputs">
                                 <div class="input-group">
                                     <label>Start Date</label>
-                                    <input type="date" [(ngModel)]="dateRanges.testing.start"
+                                    <input type="datetime-local" [(ngModel)]="dateRanges.testing.start" step="1"
                                         [min]="dateRanges.training.end || getMinDate()" [max]="getMaxDate()"
                                         (change)="validateDateRanges()">
                                 </div>
                                 <div class="input-group">
                                     <label>End Date</label>
-                                    <input type="date" [(ngModel)]="dateRanges.testing.end"
+                                    <input type="datetime-local" [(ngModel)]="dateRanges.testing.end" step="1"
                                         [min]="dateRanges.testing.start || getMinDate()" [max]="getMaxDate()"
                                         (change)="validateDateRanges()">
                                 </div>
@@ -213,13 +213,13 @@
                             <div class="date-inputs">
                                 <div class="input-group">
                                     <label>Start Date</label>
-                                    <input type="date" [(ngModel)]="dateRanges.simulation.start"
+                                    <input type="datetime-local" [(ngModel)]="dateRanges.simulation.start" step="1"
                                         [min]="dateRanges.testing.end || getMinDate()" [max]="getMaxDate()"
                                         (change)="validateDateRanges()">
                                 </div>
                                 <div class="input-group">
                                     <label>End Date</label>
-                                    <input type="date" [(ngModel)]="dateRanges.simulation.end"
+                                    <input type="datetime-local" [(ngModel)]="dateRanges.simulation.end" step="1"
                                         [min]="dateRanges.simulation.start || getMinDate()" [max]="getMaxDate()"
                                         (change)="validateDateRanges()">
                                 </div>
@@ -232,6 +232,10 @@
 
                     <!-- Validation Button -->
                     <div class="validation-section">
+                        <button class="btn-secondary" (click)="autoSplitRanges()">
+                            Auto-split (70/20/10)
+                        </button>
+
                         <button class="btn-validate" [disabled]="!canValidateRanges() || isValidatingRanges"
                             (click)="validateRanges()">
                             <span *ngIf="!isValidatingRanges">Validate Date Ranges</span>

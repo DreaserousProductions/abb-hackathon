@@ -64,6 +64,7 @@ export class LoginComponent implements AfterViewInit {
 
           // Store token if needed
           localStorage.setItem('authToken', response.token);
+          localStorage.setItem('username', response.username);
 
           this.router.navigate(['/upload']);
           this.isLoading = false;

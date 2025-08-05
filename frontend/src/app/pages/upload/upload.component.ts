@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { UploadResult, UploadService, ValidateRangesResponse } from '../../services/upload/upload.service';
+import { HttpEvent, HttpEventType } from '@angular/common/http';
 
 // Interfaces
 interface DateRange { start: string; end: string; }
-interface UploadResult { totalRecords: number; numColumns: number; passRate: number; dateRange: DateRange; }
 interface DateRanges { training: DateRange; testing: DateRange; simulation: DateRange; }
 interface RangeValidation { training: boolean | null; testing: boolean | null; simulation: boolean | null; }
 interface RangeCounts { training: number; testing: number; simulation: number; }
@@ -26,7 +27,7 @@ type SimulationStatus = 'idle' | 'running' | 'stopping' | 'completed';
 })
 export class UploadComponent implements OnDestroy {
   // Step management
-  currentStep = 3;
+  currentStep = 0;
   steps = [
     { label: 'Upload' },
     { label: 'Pre-process' },
@@ -38,6 +39,7 @@ export class UploadComponent implements OnDestroy {
   selectedFile: File | null = null;
   isDragOver = false;
   isUploading = false;
+  uploadProgress = 0;
   errorMessage = '';
   uploadResult: UploadResult | null = null;
 
@@ -63,6 +65,8 @@ export class UploadComponent implements OnDestroy {
   // Intervals
   private simulationInterval: any;
   private progressInterval: any;
+
+  constructor(private uploadService: UploadService) { }
 
   ngOnDestroy(): void { this.clearIntervals(); }
 
@@ -160,7 +164,7 @@ export class UploadComponent implements OnDestroy {
     }
 
     // Validate file size (reasonable limit for demo purposes)
-    const maxSizeInMB = 100;
+    const maxSizeInMB = 2500;
     const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
     if (file.size > maxSizeInBytes) {
       this.errorMessage = `File size must be less than ${maxSizeInMB}MB`;
@@ -176,38 +180,35 @@ export class UploadComponent implements OnDestroy {
    * Simulates file upload and processing
    * In a real implementation, this would call the /api/data/upload endpoint
    */
-  private async uploadFile(file: File): Promise<void> {
+  private uploadFile(file: File): void {
     this.isUploading = true;
     this.errorMessage = '';
 
-    try {
-      // Simulate API call delay
-      await this.delay(2000);
+    // Get the username from localStorage. Provide a fallback if it doesn't exist.
+    const userId = localStorage.getItem('username') || 'anonymous_user';
 
-      // In a real implementation, you would:
-      // 1. Create FormData with the file
-      // 2. POST to /api/data/upload endpoint
-      // 3. Handle the response according to the API contract
-
-      // Mock response data matching the API contract from the PDF
-      this.uploadResult = {
-        totalRecords: this.generateMockRecordCount(),
-        numColumns: this.generateMockColumnCount(),
-        passRate: this.generateMockPassRate(),
-        dateRange: {
-          start: this.generateMockStartDate(),
-          end: this.generateMockEndDate()
+    // Pass the file and userId to the service
+    this.uploadService.uploadFileWithProgress(file, userId).subscribe({
+      next: (event: HttpEvent<UploadResult>) => {
+        if (event.type === HttpEventType.UploadProgress) {
+          if (event.total) {
+            this.uploadProgress = Math.round(100 * event.loaded / event.total);
+          }
+        } else if (event.type === HttpEventType.Response) {
+          this.uploadResult = event.body;
+          console.log('Upload complete!', this.uploadResult);
+          this.uploadProgress = 0;
         }
-      };
-
-      console.log('File uploaded successfully:', this.uploadResult);
-
-    } catch (error) {
-      this.errorMessage = 'Failed to upload file. Please try again.';
-      console.error('Upload error:', error);
-    } finally {
-      this.isUploading = false;
-    }
+      },
+      error: (err) => {
+        this.errorMessage = 'Failed to upload file. Please try again.';
+        console.error('Upload error:', err);
+        this.isUploading = false;
+      },
+      complete: () => {
+        this.isUploading = false;
+      }
+    });
   }
 
   /**
@@ -235,9 +236,18 @@ export class UploadComponent implements OnDestroy {
    * Advances to the next step
    * Only enabled when upload is complete as per PDF requirements
    */
+  /**
+    * Advances to the next step and sets initial date values if applicable.
+    */
   next(): void {
     if (this.currentStep < this.steps.length - 1) {
       this.currentStep++;
+
+      // When moving to the Pre-processing step (index 1), set default dates
+      if (this.currentStep === 1 && this.uploadResult) {
+        this.dateRanges.training.start = this.formatDateForInput(this.uploadResult.dateRange.start);
+        this.dateRanges.simulation.end = this.formatDateForInput(this.uploadResult.dateRange.end);
+      }
     }
   }
 
@@ -287,55 +297,89 @@ export class UploadComponent implements OnDestroy {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Mock data generators for demonstration purposes
-  // In a real implementation, this data would come from the ML service
+  /**
+    * Formats a date string or Date object to be compatible with datetime-local input.
+    * Strips microseconds and ensures proper 'YYYY-MM-DDTHH:MM:SS' format.
+    */
+  private formatDateForInput(dateValue: string | Date): string {
+    if (!dateValue) {
+      return '';
+    }
 
-  private generateMockRecordCount(): number {
-    // Generate a realistic record count for manufacturing data
-    return Math.floor(Math.random() * 900000) + 100000; // Between 100k and 1M
+    // Create a new Date object whether the input is a string or a Date
+    const date = new Date(dateValue);
+
+    // Check if the date is valid before proceeding
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    const hours = ('0' + date.getHours()).slice(-2);
+    const minutes = ('0' + date.getMinutes()).slice(-2);
+    const seconds = ('0' + date.getSeconds()).slice(-2);
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
 
-  private generateMockColumnCount(): number {
-    // Manufacturing datasets typically have many columns
-    return Math.floor(Math.random() * 150) + 50; // Between 50 and 200 columns
-  }
+  // ADD THIS NEW METHOD
+  /**
+   * Automatically splits the date ranges into a 70/20/10 ratio.
+   */
+  autoSplitRanges(): void {
+    if (!this.uploadResult) {
+      return;
+    }
 
-  private generateMockPassRate(): number {
-    // Generate a realistic pass rate (typically high in manufacturing)
-    return 0.85 + (Math.random() * 0.14); // Between 85% and 99%
-  }
+    const startDate = new Date(this.uploadResult.dateRange.start);
+    const endDate = new Date(this.uploadResult.dateRange.end);
 
-  private generateMockStartDate(): string {
-    // Generate a start date in the past year
-    const now = new Date();
-    const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-    const randomDays = Math.floor(Math.random() * 365);
-    const startDate = new Date(yearAgo.getTime() + (randomDays * 24 * 60 * 60 * 1000));
-    return startDate.toISOString().split('T')[0];
-  }
+    const totalDuration = endDate.getTime() - startDate.getTime();
 
-  private generateMockEndDate(): string {
-    // Generate an end date more recent than start date
-    const now = new Date();
-    const daysAgo = Math.floor(Math.random() * 30); // Within last 30 days
-    const endDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
-    return endDate.toISOString().split('T')[0];
+    // Calculate the end time for the training period (70% of the duration)
+    const trainingEndTime = startDate.getTime() + totalDuration * 0.7;
+    const trainingEndDate = new Date(trainingEndTime);
+
+    // Calculate the end time for the testing period (another 20% of the duration)
+    const testingEndTime = trainingEndTime + totalDuration * 0.2;
+    const testingEndDate = new Date(testingEndTime);
+
+    // Set the date ranges
+    this.dateRanges = {
+      training: {
+        start: this.formatDateForInput(startDate),
+        end: this.formatDateForInput(trainingEndDate)
+      },
+      testing: {
+        start: this.formatDateForInput(trainingEndDate),
+        end: this.formatDateForInput(testingEndDate)
+      },
+      simulation: {
+        start: this.formatDateForInput(testingEndDate),
+        end: this.formatDateForInput(endDate) // Ends at the dataset's overall end
+      }
+    };
+
+    // Trigger validation to update the UI state immediately
+    this.validateDateRanges();
   }
 
   // === DATE RANGES FUNCTIONALITY (STEP 2) ===
 
   /**
-   * Get minimum date for date inputs (from upload result)
-   */
+ * Get minimum date for date inputs (from upload result)
+ */
   getMinDate(): string {
-    return this.uploadResult?.dateRange.start || '';
+    return this.uploadResult ? this.formatDateForInput(this.uploadResult.dateRange.start) : '';
   }
 
   /**
    * Get maximum date for date inputs (from upload result)
    */
   getMaxDate(): string {
-    return this.uploadResult?.dateRange.end || '';
+    return this.uploadResult ? this.formatDateForInput(this.uploadResult.dateRange.end) : '';
   }
 
   /**
@@ -381,52 +425,73 @@ export class UploadComponent implements OnDestroy {
     }
   }
 
-  /**
-   * Validate ranges against backend (simulated API call)
-   */
-  async validateRanges(): Promise<void> {
-    this.isValidatingRanges = true;
-
-    try {
-      // Simulate API call delay
-      await this.delay(1500);
-
-      // In a real implementation, this would call /api/data/validate-ranges
-      // Generate mock data for demonstration
-      this.rangeCounts = {
-        training: Math.floor(Math.random() * 50000) + 10000,
-        testing: Math.floor(Math.random() * 20000) + 5000,
-        simulation: Math.floor(Math.random() * 15000) + 3000
-      };
-
-      // Generate timeline data
-      const total = this.rangeCounts.training + this.rangeCounts.testing + this.rangeCounts.simulation;
-      this.timelineData = [
-        {
-          type: 'training',
-          label: 'Training',
-          count: this.rangeCounts.training,
-          percentage: (this.rangeCounts.training / total) * 100
-        },
-        {
-          type: 'testing',
-          label: 'Testing',
-          count: this.rangeCounts.testing,
-          percentage: (this.rangeCounts.testing / total) * 100
-        },
-        {
-          type: 'simulation',
-          label: 'Simulation',
-          count: this.rangeCounts.simulation,
-          percentage: (this.rangeCounts.simulation / total) * 100
-        }
-      ];
-
-    } catch (error) {
-      console.error('Range validation error:', error);
-    } finally {
-      this.isValidatingRanges = false;
+  validateRanges(): void {
+    if (!this.uploadResult) {
+      this.errorMessage = "Cannot validate ranges without an uploaded file.";
+      return;
     }
+
+    this.isValidatingRanges = true;
+    this.errorMessage = ''; // Clear previous errors
+
+    this.uploadService.validateDateRanges(
+      this.uploadResult.datasetId,
+      this.uploadResult.userId,
+      this.dateRanges
+    ).subscribe({
+      next: (response: ValidateRangesResponse) => {
+        if (response.status === 'Valid') {
+          // Update range counts from the backend response
+          this.rangeCounts = {
+            training: response.training.count,
+            testing: response.testing.count,
+            simulation: response.simulation.count,
+          };
+
+          // Generate timeline data from the backend response
+          const total = this.rangeCounts.training + this.rangeCounts.testing + this.rangeCounts.simulation;
+          if (total > 0) {
+            this.timelineData = [
+              {
+                type: 'training',
+                label: 'Training',
+                count: this.rangeCounts.training,
+                percentage: (this.rangeCounts.training / total) * 100
+              },
+              {
+                type: 'testing',
+                label: 'Testing',
+                count: this.rangeCounts.testing,
+                percentage: (this.rangeCounts.testing / total) * 100
+              },
+              {
+                type: 'simulation',
+                label: 'Simulation',
+                count: this.rangeCounts.simulation,
+                percentage: (this.rangeCounts.simulation / total) * 100
+              }
+            ];
+          } else {
+            this.timelineData = null; // No records found
+          }
+
+          // You can now also use response.monthlyCounts to display another chart if you wish
+          console.log('Monthly Counts:', response.monthlyCounts);
+
+        } else {
+          // Handle invalid status from backend if needed, though FastAPI handles this with 400 error
+          this.errorMessage = "Validation failed on the server.";
+        }
+        this.isValidatingRanges = false;
+      },
+      error: (err) => {
+        // Display the detailed error message from the backend
+        this.errorMessage = err.error?.detail || err.error || 'An unknown validation error occurred.';
+        console.error('Range validation error:', err);
+        this.timelineData = null; // Clear timeline on error
+        this.isValidatingRanges = false;
+      }
+    });
   }
 
   /**

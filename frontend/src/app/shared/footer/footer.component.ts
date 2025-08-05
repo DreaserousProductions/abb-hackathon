@@ -44,7 +44,7 @@ export class FooterComponent implements AfterViewInit {
   }
 
   share() {
-    const shareUrl = 'https://dreaserous.netlify.app/';
+    const shareUrl = 'https://abb.dreaserous.tech/';
 
     if (navigator.share) {
       navigator.share({
