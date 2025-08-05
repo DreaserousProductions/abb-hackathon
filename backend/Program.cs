@@ -57,6 +57,8 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 
+app.UseWebSockets();
+
 app.UseCors("AllowAngularApp"); // Apply CORS policy
 app.UseAuthentication();        // Enable authentication
 app.UseAuthorization();         // Enable authorization

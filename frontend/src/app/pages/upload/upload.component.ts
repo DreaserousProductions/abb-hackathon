@@ -3,7 +3,8 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TrainModelResponse, UploadResult, UploadService, ValidateRangesResponse } from '../../services/upload/upload.service';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
+import { SimulationMessage, SimulationResult, SimulationService } from '../../services/simulation/simulation.service';
 
 // Interfaces
 interface DateRange { start: string; end: string; }
@@ -14,8 +15,8 @@ interface TimelineData { type: string; label: string; count: number; percentage:
 interface TrainingMetrics { accuracy: number; precision: number; recall: number; f1Score: number; }
 interface TrainingResult { metrics: TrainingMetrics; plots: { featureImportance: string; }; }
 interface ConfusionMatrix { truePositive: number; falsePositive: number; trueNegative: number; falseNegative: number; }
-interface SimulationStats { totalPredictions: number; passCount: number; failCount: number; currentAccuracy: number; }
-interface RealtimePrediction { timestamp: Date; prediction: 'pass' | 'fail'; confidence: number; }
+interface SimulationStats { totalPredictions: number; passCount: number; failCount: number; currentAccuracy: number; correctCount: number; }
+interface RealtimePrediction { timestamp: Date; prediction: 'pass' | 'fail'; confidence: number; isCorrect: boolean; }
 interface ConfidenceDistribution { high: number; medium: number; low: number; }
 type SimulationStatus = 'idle' | 'running' | 'stopping' | 'completed';
 
@@ -59,7 +60,7 @@ export class UploadComponent implements OnDestroy {
 
   // Simulation state
   simulationStatus: SimulationStatus = 'idle';
-  simulationStats: SimulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, currentAccuracy: 0 };
+  simulationStats: SimulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, currentAccuracy: 0, correctCount: 0, };
   realtimeData: RealtimePrediction[] = [];
   confidenceDistribution: ConfidenceDistribution = { high: 0, medium: 0, low: 0 };
 
@@ -67,9 +68,14 @@ export class UploadComponent implements OnDestroy {
   private simulationInterval: any;
   private progressInterval: any;
 
-  constructor(private uploadService: UploadService) { }
+  private simSubscription?: Subscription;
+  constructor(private uploadService: UploadService, private simulationService: SimulationService) { }
 
-  ngOnDestroy(): void { this.clearIntervals(); }
+  ngOnDestroy(): void {
+    this.clearIntervals();
+    this.simSubscription?.unsubscribe();
+    this.simulationService.closeConnection();
+  }
 
   private clearIntervals(): void {
     if (this.simulationInterval) clearInterval(this.simulationInterval);
@@ -104,7 +110,7 @@ export class UploadComponent implements OnDestroy {
   resetSimulation(): void {
     this.clearIntervals();
     this.simulationStatus = 'idle';
-    this.simulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, currentAccuracy: 0 };
+    this.simulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, currentAccuracy: 0, correctCount: 0 };
     this.realtimeData = [];
     this.confidenceDistribution = { high: 0, medium: 0, low: 0 };
   }
@@ -617,15 +623,6 @@ export class UploadComponent implements OnDestroy {
   }
 
   /**
-   * Generate mock SHAP plot (base64 encoded)
-   */
-  private generateMockSHAPPlot(): string {
-    // This would be a real base64 encoded SHAP plot from the backend
-    // For demo purposes, using a placeholder
-    return 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-  }
-
-  /**
    * Generate mock confusion matrix data
    */
   private generateConfusionMatrix(): void {
@@ -662,126 +659,106 @@ export class UploadComponent implements OnDestroy {
   }
 
   /**
-   * Start real-time simulation
+   * Starts the simulation by connecting to the WebSocket and subscribing to messages.
    */
   private startSimulation(): void {
-    this.simulationStatus = 'running';
+    if (this.uploadResult && (!this.uploadResult.userId || !this.uploadResult.datasetId)) {
+      console.error("Cannot start simulation: userId or datasetId is missing.");
+      return;
+    }
     this.resetSimulationData();
+    this.simulationStatus = 'running';
 
-    // Simulate real-time predictions every second
-    this.simulationInterval = setInterval(() => {
-      this.generateRealtimePrediction();
-
-      // Stop after certain number of predictions for demo
-      if (this.simulationStats.totalPredictions >= 100) {
-        this.completeSimulation();
+    this.simulationService.connect();
+    this.simSubscription = this.simulationService.messages$.subscribe({
+      next: (message: SimulationMessage) => this.processSimulationMessage(message),
+      error: (err) => {
+        console.error('WebSocket Error:', err);
+        this.simulationStatus = 'idle'; // Reset on error
+      },
+      complete: () => {
+        console.log('WebSocket stream completed.');
+        this.simulationStatus = 'completed';
       }
-    }, 1000);
+    });
+
+    // Send the start command after connecting
+    this.simulationService.startSimulation(this.uploadResult!.userId, this.uploadResult!.datasetId);
   }
 
   /**
-   * Stop simulation
+   * Sends a stop command to the WebSocket.
    */
   private stopSimulation(): void {
+    if (this.uploadResult && (!this.uploadResult.userId || !this.uploadResult.datasetId)) return;
+
     this.simulationStatus = 'stopping';
-    this.clearIntervals();
-
-    setTimeout(() => {
-      this.simulationStatus = 'completed';
-    }, 1000);
+    this.simulationService.stopSimulation(this.uploadResult!.userId, this.uploadResult!.datasetId);
   }
 
   /**
-   * Complete simulation
+   * Processes each message received from the WebSocket server.
    */
-  private completeSimulation(): void {
-    this.clearIntervals();
-    this.simulationStatus = 'completed';
+  private processSimulationMessage(message: SimulationMessage): void {
+    if ('rowIndex' in message) {
+      // It's a data message
+      const result = message as SimulationResult;
+      const newPrediction: RealtimePrediction = {
+        timestamp: new Date(result.timestamp),
+        prediction: result.prediction === 1 ? 'pass' : 'fail',
+        confidence: result.confidence,
+        isCorrect: result.isCorrect
+      };
+      this.realtimeData.push(newPrediction);
+      this.updateSimulationStats(newPrediction);
+      this.updateConfidenceDistribution();
+    } else if (message.status) {
+      // It's a status message
+      if (message.status === 'stopped' || message.status === 'finished') {
+        this.simulationStatus = 'completed';
+        this.simSubscription?.unsubscribe();
+      }
+    } else if (message.error) {
+      console.error("Error from simulation server:", message.error);
+      this.stopSimulation();
+    }
   }
 
   /**
-   * Reset simulation for new run
-   */
-  // resetSimulation(): void {
-  //   this.resetSimulationData();
-  //   this.simulationStatus = 'idle';
-  // }
-
-  /**
-   * Reset simulation data
+   * Resets all data and stats for a new simulation run.
    */
   private resetSimulationData(): void {
-    this.simulationStats = {
-      totalPredictions: 0,
-      passCount: 0,
-      failCount: 0,
-      currentAccuracy: 0
-    };
     this.realtimeData = [];
+    this.simulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, correctCount: 0, currentAccuracy: 0 };
     this.updateConfidenceDistribution();
   }
 
   /**
-   * Generate a single real-time prediction
-   */
-  private generateRealtimePrediction(): void {
-    const prediction: RealtimePrediction = {
-      timestamp: new Date(),
-      prediction: Math.random() > 0.15 ? 'pass' : 'fail', // 85% pass rate
-      confidence: 0.7 + (Math.random() * 0.3) // 70-100% confidence
-    };
-
-    this.realtimeData.push(prediction);
-    this.updateSimulationStats(prediction);
-    this.updateConfidenceDistribution();
-  }
-
-  /**
-   * Update simulation statistics
+   * Updates the running statistics with each new prediction.
    */
   private updateSimulationStats(prediction: RealtimePrediction): void {
     this.simulationStats.totalPredictions++;
-
-    if (prediction.prediction === 'pass') {
-      this.simulationStats.passCount++;
-    } else {
-      this.simulationStats.failCount++;
+    prediction.prediction === 'pass' ? this.simulationStats.passCount++ : this.simulationStats.failCount++;
+    if (prediction.isCorrect) {
+      this.simulationStats.correctCount++;
     }
-
-    // Calculate current accuracy (mock actual vs predicted)
-    const mockActualPass = Math.random() > 0.12; // 88% actual pass rate
-    const predictedCorrectly =
-      (prediction.prediction === 'pass' && mockActualPass) ||
-      (prediction.prediction === 'fail' && !mockActualPass);
-
-    if (predictedCorrectly) {
-      this.simulationStats.currentAccuracy =
-        ((this.simulationStats.currentAccuracy * (this.simulationStats.totalPredictions - 1)) + 100) /
-        this.simulationStats.totalPredictions;
-    } else {
-      this.simulationStats.currentAccuracy =
-        (this.simulationStats.currentAccuracy * (this.simulationStats.totalPredictions - 1)) /
-        this.simulationStats.totalPredictions;
-    }
+    this.simulationStats.currentAccuracy = (this.simulationStats.correctCount / this.simulationStats.totalPredictions) * 100;
   }
 
   /**
-   * Update confidence distribution
+   * Recalculates the confidence distribution pie chart data.
    */
   private updateConfidenceDistribution(): void {
     if (this.realtimeData.length === 0) {
       this.confidenceDistribution = { high: 0, medium: 0, low: 0 };
       return;
     }
-
     let high = 0, medium = 0, low = 0;
-
-    this.realtimeData.forEach(pred => {
-      if (pred.confidence > 0.9) high++;
-      else if (pred.confidence > 0.7) medium++;
+    this.realtimeData.forEach(p => {
+      if (p.confidence > 0.9) high++;
+      else if (p.confidence > 0.8) medium++;
       else low++;
     });
-
     const total = this.realtimeData.length;
     this.confidenceDistribution = {
       high: (high / total) * 100,
@@ -791,8 +768,8 @@ export class UploadComponent implements OnDestroy {
   }
 
   /**
-   * Get simulation status text
-   */
+  * Get simulation status text
+  */
   getSimulationStatusText(): string {
     switch (this.simulationStatus) {
       case 'idle': return 'Ready to start';

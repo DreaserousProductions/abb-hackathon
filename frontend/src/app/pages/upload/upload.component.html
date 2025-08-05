@@ -41,6 +41,9 @@
                         <!-- Loading State -->
                         <div class="loading-state" *ngIf="isUploading">
                             <div class="spinner"></div>
+                            <!-- <div class="progress-bar-training">
+                                <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+                            </div> -->
                             <h4>Processing your dataset...</h4>
                             <p class="reg">Please wait while we analyze your data</p>
                         </div>
@@ -228,6 +231,17 @@
                                 <p class="reg">{{ rangeCounts.simulation | number }} records</p>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div class="error-message" *ngIf="errorMessage">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        <p class="reg">{{ errorMessage }}</p>
                     </div>
 
                     <!-- Validation Button -->
@@ -540,8 +554,8 @@
                                     <span class="prediction-value">{{ prediction.prediction | titlecase }}</span>
                                     <span class="confidence">{{ (prediction.confidence * 100) | number:'1.1-1'
                                         }}%</span>
-                                    <span class="status-badge" [ngClass]="prediction.prediction">
-                                        {{ prediction.prediction === 'pass' ? '✓' : '✗' }}
+                                    <span class="status-badge" [ngClass]="prediction.isCorrect ? 'pass' : 'fail'">
+                                        {{ prediction.isCorrect ? '✓' : '✗' }}
                                     </span>
                                 </div>
                             </div>
