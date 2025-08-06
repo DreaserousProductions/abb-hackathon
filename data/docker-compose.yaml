@@ -1,0 +1,43 @@
+services:
+  frontend:
+    image: dreaserous/abb-hackathon:frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - abb-network
+
+  backend:
+    image: dreaserous/abb-hackathon:backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - ml_service
+    networks:
+      - abb-network
+
+  ml_service:
+    image: dreaserous/abb-hackathon:ml-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+    networks:
+      - abb-network
+    volumes:
+      - ./data_store:/app/data_store
+      - ./models:/app/models
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - abb-network
+
+networks:
+  abb-network:
+    driver: bridge
