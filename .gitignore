@@ -3,6 +3,10 @@ bin/
 obj/
 __pycache__/
 .vscode/
+models/
+data_store/
+temp_chunks/
+temp_uploads/
 
 # ml_service/
 
