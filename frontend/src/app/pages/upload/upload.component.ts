@@ -41,6 +41,7 @@ interface MonthlyData {
 })
 export class UploadComponent implements OnDestroy, AfterViewInit {
   @ViewChild('monthlyChart', { static: false }) chartCanvas?: ElementRef;
+  @ViewChild('realtimeChartCanvas') private realtimeChartCanvas!: ElementRef;
   @HostBinding('class') themeClass: string = 'theme-new';
 
   currentStep = 0;
@@ -80,6 +81,8 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
   private simSubscription?: Subscription;
   private monthlyChart: Chart | null = null;
   private themeSubscription!: Subscription;
+  private realtimeChart: Chart | null = null;
+  private simulationSubscription!: Subscription;
 
   constructor(private uploadService: UploadService, private simulationService: SimulationService, private themeService: ThemeService) { }
 
@@ -102,6 +105,12 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     this.simulationService.closeConnection();
     if (this.themeSubscription) {
       this.themeSubscription.unsubscribe();
+    }
+    if (this.simulationSubscription) {
+      this.simulationSubscription.unsubscribe();
+    }
+    if (this.realtimeChart) {
+      this.realtimeChart.destroy();
     }
   }
 
@@ -578,19 +587,26 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     }
     this.resetSimulationData();
     this.simulationStatus = 'running';
-    this.simulationService.connect();
-    this.simSubscription = this.simulationService.messages$.subscribe({
-      next: (message: SimulationMessage) => this.processSimulationMessage(message),
-      error: (err) => {
-        console.error('WebSocket Error:', err);
-        this.simulationStatus = 'idle';
-      },
-      complete: () => {
-        console.log('WebSocket stream completed.');
-        this.simulationStatus = 'completed';
-      }
-    });
-    this.simulationService.startSimulation(this.uploadResult!.userId, this.uploadResult!.datasetId);
+
+    // --- FIX IS HERE ---
+    // We must wait for the view to update after changing simulationStatus.
+    // A small timeout ensures the *ngIf becomes true and the canvas element is rendered.
+    setTimeout(() => {
+      this.createRealtimeChart(); // Now it's safe to create the chart
+      this.simulationService.connect();
+      this.simSubscription = this.simulationService.messages$.subscribe({
+        next: (message: SimulationMessage) => this.processSimulationMessage(message),
+        error: (err) => {
+          console.error('WebSocket Error:', err);
+          this.simulationStatus = 'idle';
+        },
+        complete: () => {
+          console.log('WebSocket stream completed.');
+          this.simulationStatus = 'completed';
+        }
+      });
+      this.simulationService.startSimulation(this.uploadResult!.userId, this.uploadResult!.datasetId);
+    }, 0); // A timeout of 0 is enough to push this to the next change detection cycle.
   }
 
   private stopSimulation(): void {
@@ -612,6 +628,7 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
       this.realtimeData.push(newPrediction);
       this.updateSimulationStats(newPrediction);
       this.updateConfidenceDistribution();
+      this.updateRealtimeChart(newPrediction);
     } else if (message.status) {
       if (message.status === 'stopped' || message.status === 'finished') {
         this.simulationStatus = 'completed';
@@ -627,6 +644,11 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     this.realtimeData = [];
     this.simulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, correctCount: 0, currentAccuracy: 0 };
     this.updateConfidenceDistribution();
+    if (this.realtimeChart) {
+      this.realtimeChart.data.labels = [];
+      this.realtimeChart.data.datasets[0].data = [];
+      this.realtimeChart.update();
+    }
   }
 
   private updateSimulationStats(prediction: RealtimePrediction): void {
@@ -891,6 +913,84 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     }
   }
 
+  private createRealtimeChart(): void {
+    if (this.realtimeChart) {
+      return;
+    }
+    if (!this.realtimeChartCanvas || !this.realtimeChartCanvas.nativeElement) {
+      console.error("Real-time chart canvas is not available in the DOM.");
+      return;
+    }
+    const ctx = this.realtimeChartCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(75, 192, 192, 0.6)');
+    gradient.addColorStop(1, 'rgba(75, 192, 192, 0)');
+
+    const config: ChartConfiguration = {
+      type: 'line' as ChartType,
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Confidence Score',
+          data: [],
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'category',
+            ticks: { display: false },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: (value) => `${value}%`
+            }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: (context) => `Confidence: ${context.parsed.y.toFixed(2)}%`
+            }
+          }
+        }
+      }
+    };
+    this.realtimeChart = new Chart(ctx, config);
+  }
+
+  private updateRealtimeChart(prediction: RealtimePrediction): void {
+    if (!this.realtimeChart) return;
+
+    const chartData = this.realtimeChart.data;
+    const timestamp = new Date(prediction.timestamp).toLocaleTimeString();
+    chartData.labels?.push(timestamp);
+    chartData.datasets[0].data.push(prediction.confidence * 100);
+
+    const maxDataPoints = 50;
+    if (chartData.labels && chartData.labels.length > maxDataPoints) {
+      chartData.labels.shift();
+      chartData.datasets[0].data.shift();
+    }
+
+    this.realtimeChart.update();
+  }
+
   private updateChartAfterValidation(): void {
     console.log('Updating chart after validation...');
     setTimeout(() => {
@@ -898,6 +998,1010 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     }, 500);
   }
 }
+
+
+// import { CommonModule } from '@angular/common';
+// import { Component, HostBinding, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+// import { FormsModule } from '@angular/forms';
+// import { TrainModelResponse, UploadResult, UploadService, ValidateRangesResponse } from '../../services/upload/upload.service';
+// import { HttpEvent, HttpEventType } from '@angular/common/http';
+// import { firstValueFrom, Subscription } from 'rxjs';
+// import { SimulationMessage, SimulationResult, SimulationService } from '../../services/simulation/simulation.service';
+// import { AppTheme, ThemeService } from '../../services/theme/theme.service';
+// import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
+
+// Chart.register(...registerables);
+
+// interface DateRange { start: string; end: string; }
+// interface DateRanges { training: DateRange; testing: DateRange; simulation: DateRange; }
+// interface RangeValidation { training: boolean | null; testing: boolean | null; simulation: boolean | null; }
+// interface RangeCounts { training: number; testing: number; simulation: number; }
+// interface TimelineData { type: string; label: string; count: number; percentage: number; }
+// interface TrainingMetrics { accuracy: number; precision: number; recall: number; f1Score: number; }
+// interface TrainingResult { metrics: TrainingMetrics; plots: { featureImportance: string; }; }
+// interface ConfusionMatrix { truePositive: number; falsePositive: number; trueNegative: number; falseNegative: number; }
+// interface SimulationStats { totalPredictions: number; passCount: number; failCount: number; currentAccuracy: number; correctCount: number; }
+// interface RealtimePrediction { rowIndex: number; timestamp: Date; prediction: 'pass' | 'fail'; confidence: number; isCorrect: boolean; }
+// interface ConfidenceDistribution { high: number; medium: number; low: number; }
+// type SimulationStatus = 'idle' | 'running' | 'stopping' | 'completed';
+
+// interface MonthlyData {
+//   month: string;
+//   year: number;
+//   trainingDays: number;
+//   testingDays: number;
+//   simulationDays: number;
+//   totalDays: number;
+// }
+
+// @Component({
+//   selector: 'app-upload',
+//   standalone: true,
+//   imports: [CommonModule, FormsModule],
+//   templateUrl: './upload.component.html',
+//   styleUrl: './upload.component.css'
+// })
+// export class UploadComponent implements OnDestroy, AfterViewInit {
+//   @ViewChild('monthlyChart', { static: false }) chartCanvas?: ElementRef;
+//   @ViewChild('realtimeChartCanvas') private realtimeChartCanvas!: ElementRef;
+//   @HostBinding('class') themeClass: string = 'theme-new';
+
+//   currentStep = 0;
+//   steps = [
+//     { label: 'Upload' },
+//     { label: 'Pre-process' },
+//     { label: 'Train' },
+//     { label: 'Simulate' }
+//   ];
+//   selectedFile: File | null = null;
+//   isDragOver = false;
+//   isUploading = false;
+//   uploadProgress = 0;
+//   errorMessage = '';
+//   uploadResult: UploadResult | null = null;
+//   dateRanges: DateRanges = { training: { start: '', end: '' }, testing: { start: '', end: '' }, simulation: { start: '', end: '' } };
+//   rangeValidation: RangeValidation = { training: null, testing: null, simulation: null };
+//   rangeCounts: RangeCounts = { training: 0, testing: 0, simulation: 0 };
+//   isValidatingRanges = false;
+//   timelineData: TimelineData[] | null = null;
+//   isTraining = false;
+//   trainingProgress = 0;
+//   trainingResults: TrainModelResponse | null = null;
+//   confusionMatrix: ConfusionMatrix = { truePositive: 0, falsePositive: 0, trueNegative: 0, falseNegative: 0 };
+//   simulationStatus: SimulationStatus = 'idle';
+//   simulationStats: SimulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, currentAccuracy: 0, correctCount: 0, };
+//   realtimeData: RealtimePrediction[] = [];
+//   confidenceDistribution: ConfidenceDistribution = { high: 0, medium: 0, low: 0 };
+//   chartColors = {
+//     training: '#3b82f6',
+//     testing: '#f59e0b',
+//     simulation: '#10b981'
+//   };
+
+//   private simulationInterval: any;
+//   private progressInterval: any;
+//   private simSubscription?: Subscription;
+//   private monthlyChart: Chart | null = null;
+//   private themeSubscription!: Subscription;
+//   private realtimeChart: Chart | null = null;
+//   private simulationSubscription!: Subscription;
+
+//   constructor(private uploadService: UploadService, private simulationService: SimulationService, private themeService: ThemeService) { }
+
+//   ngOnInit(): void {
+//     this.themeSubscription = this.themeService.getTheme().subscribe((theme: AppTheme) => {
+//       this.themeClass = theme === 'legacy' ? 'theme-legacy' : 'theme-new';
+//     });
+//   }
+
+//   ngAfterViewInit(): void {
+//     console.log('ngAfterViewInit called, canvas available:', !!this.chartCanvas?.nativeElement);
+//     this.createRealtimeChart();
+//   }
+
+//   ngOnDestroy(): void {
+//     if (this.monthlyChart) {
+//       this.monthlyChart.destroy();
+//     }
+//     this.clearIntervals();
+//     this.simSubscription?.unsubscribe();
+//     this.simulationService.closeConnection();
+//     if (this.themeSubscription) {
+//       this.themeSubscription.unsubscribe();
+//     }
+//     if (this.simulationSubscription) {
+//       this.simulationSubscription.unsubscribe();
+//     }
+//     // Instead of destroying the chart, just clear its data
+//     if (this.realtimeChart) {
+//       this.realtimeChart.data.labels = [];
+//       this.realtimeChart.data.datasets[0].data = [];
+//       this.realtimeChart.update();
+//     }
+//   }
+
+//   reset(): void {
+//     this.selectedFile = null;
+//     this.uploadResult = null;
+//     this.errorMessage = '';
+//     this.isUploading = false;
+//     this.isDragOver = false;
+//     this.resetDateRanges();
+//     this.resetTraining();
+//     this.resetSimulation();
+//   }
+
+//   resetSimulation(): void {
+//     this.clearIntervals();
+//     this.simulationStatus = 'idle';
+//     this.simulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, currentAccuracy: 0, correctCount: 0 };
+//     this.realtimeData = [];
+//     this.confidenceDistribution = { high: 0, medium: 0, low: 0 };
+//   }
+
+//   onFileSelected(event: Event): void {
+//     const input = event.target as HTMLInputElement;
+//     if (input.files?.length) {
+//       const file = input.files[0];
+//       this.processFile(file);
+//     }
+//   }
+
+//   onDragOver(event: DragEvent): void {
+//     event.preventDefault();
+//     event.stopPropagation();
+//     this.isDragOver = true;
+//   }
+
+//   onDragLeave(event: DragEvent): void {
+//     event.preventDefault();
+//     event.stopPropagation();
+//     this.isDragOver = false;
+//   }
+
+//   onDrop(event: DragEvent): void {
+//     event.preventDefault();
+//     event.stopPropagation();
+//     this.isDragOver = false;
+//     const files = event.dataTransfer?.files;
+//     if (files?.length) {
+//       const file = files[0];
+//       this.processFile(file);
+//     }
+//   }
+
+//   removeFile(event: Event): void {
+//     event.stopPropagation();
+//     this.selectedFile = null;
+//     this.uploadResult = null;
+//     this.errorMessage = '';
+//   }
+
+//   next(): void {
+//     if (this.currentStep < this.steps.length - 1) {
+//       this.currentStep++;
+//       if (this.currentStep === 1 && this.uploadResult) {
+//         this.dateRanges.training.start = this.formatDateForInput(this.uploadResult.dateRange.start);
+//         this.dateRanges.simulation.end = this.formatDateForInput(this.uploadResult.dateRange.end);
+//       }
+//     }
+//   }
+
+//   goToStep(index: number): void {
+//     if (index <= this.currentStep) {
+//       this.currentStep = index;
+//     }
+//   }
+
+//   formatFileSize(bytes: number): string {
+//     if (bytes === 0) return '0 Bytes';
+//     const k = 1024;
+//     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+//     const i = Math.floor(Math.log(bytes) / Math.log(k));
+//     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+//   }
+
+//   formatDateRange(dateRange: DateRange): string {
+//     const startDate = new Date(dateRange.start);
+//     const endDate = new Date(dateRange.end);
+//     const formatOptions: Intl.DateTimeFormatOptions = {
+//       year: 'numeric',
+//       month: 'short',
+//       day: 'numeric'
+//     };
+//     return `${startDate.toLocaleDateString('en-US', formatOptions)} - ${endDate.toLocaleDateString('en-US', formatOptions)}`;
+//   }
+
+//   autoSplitRanges(): void {
+//     if (!this.uploadResult) {
+//       return;
+//     }
+//     const startDate = new Date(this.uploadResult.dateRange.start);
+//     const endDate = new Date(this.uploadResult.dateRange.end);
+//     const totalDuration = endDate.getTime() - startDate.getTime();
+//     const trainingEndTime = startDate.getTime() + totalDuration * 0.7;
+//     const trainingEndDate = new Date(trainingEndTime);
+//     const testingEndTime = trainingEndTime + totalDuration * 0.2;
+//     const testingEndDate = new Date(testingEndTime);
+//     this.dateRanges = {
+//       training: {
+//         start: this.formatDateForInput(startDate),
+//         end: this.formatDateForInput(trainingEndDate)
+//       },
+//       testing: {
+//         start: this.formatDateForInput(trainingEndDate),
+//         end: this.formatDateForInput(testingEndDate)
+//       },
+//       simulation: {
+//         start: this.formatDateForInput(testingEndDate),
+//         end: this.formatDateForInput(endDate)
+//       }
+//     };
+//     this.validateDateRanges();
+//   }
+
+//   getMinDate(): string {
+//     return this.uploadResult ? this.formatDateForInput(this.uploadResult.dateRange.start) : '';
+//   }
+
+//   getMaxDate(): string {
+//     return this.uploadResult ? this.formatDateForInput(this.uploadResult.dateRange.end) : '';
+//   }
+
+//   canValidateRanges(): boolean {
+//     return !!(
+//       this.dateRanges.training.start && this.dateRanges.training.end &&
+//       this.dateRanges.testing.start && this.dateRanges.testing.end &&
+//       this.dateRanges.simulation.start && this.dateRanges.simulation.end
+//     );
+//   }
+
+//   validateDateRanges(): void {
+//     this.rangeValidation = {
+//       training: null,
+//       testing: null,
+//       simulation: null
+//     };
+//     if (this.dateRanges.training.start && this.dateRanges.training.end) {
+//       this.rangeValidation.training =
+//         new Date(this.dateRanges.training.start) < new Date(this.dateRanges.training.end);
+//     }
+//     if (this.dateRanges.testing.start && this.dateRanges.testing.end) {
+//       this.rangeValidation.testing =
+//         new Date(this.dateRanges.testing.start) < new Date(this.dateRanges.testing.end) &&
+//         new Date(this.dateRanges.testing.start) >= new Date(this.dateRanges.training.end);
+//     }
+//     if (this.dateRanges.simulation.start && this.dateRanges.simulation.end) {
+//       this.rangeValidation.simulation =
+//         new Date(this.dateRanges.simulation.start) < new Date(this.dateRanges.simulation.end) &&
+//         new Date(this.dateRanges.simulation.start) >= new Date(this.dateRanges.testing.end);
+//     }
+//   }
+
+//   validateRanges(): void {
+//     if (!this.uploadResult) {
+//       this.errorMessage = "Cannot validate ranges without an uploaded file.";
+//       return;
+//     }
+//     this.isValidatingRanges = true;
+//     this.errorMessage = '';
+//     this.uploadService.validateDateRanges(
+//       this.uploadResult.datasetId,
+//       this.uploadResult.userId,
+//       this.dateRanges
+//     ).subscribe({
+//       next: (response: ValidateRangesResponse) => {
+//         if (response.status === 'Valid') {
+//           this.rangeCounts = {
+//             training: response.training.count,
+//             testing: response.testing.count,
+//             simulation: response.simulation.count,
+//           };
+//           const total = this.rangeCounts.training + this.rangeCounts.testing + this.rangeCounts.simulation;
+//           if (total > 0) {
+//             this.timelineData = [
+//               {
+//                 type: 'training',
+//                 label: 'Training',
+//                 count: this.rangeCounts.training,
+//                 percentage: (this.rangeCounts.training / total) * 100
+//               },
+//               {
+//                 type: 'testing',
+//                 label: 'Testing',
+//                 count: this.rangeCounts.testing,
+//                 percentage: (this.rangeCounts.testing / total) * 100
+//               },
+//               {
+//                 type: 'simulation',
+//                 label: 'Simulation',
+//                 count: this.rangeCounts.simulation,
+//                 percentage: (this.rangeCounts.simulation / total) * 100
+//               }
+//             ];
+//           } else {
+//             this.timelineData = null;
+//           }
+//           this.updateChartAfterValidation();
+//           console.log('Monthly Counts:', response.monthlyCounts);
+//         } else {
+//           this.errorMessage = "Validation failed on the server.";
+//         }
+//         this.isValidatingRanges = false;
+//       },
+//       error: (err) => {
+//         this.errorMessage = err.error?.detail || err.error || 'An unknown validation error occurred.';
+//         console.error('Range validation error:', err);
+//         this.timelineData = null;
+//         this.isValidatingRanges = false;
+//       }
+//     });
+//   }
+
+//   areRangesValid(): boolean {
+//     return !!(
+//       this.rangeValidation.training === true &&
+//       this.rangeValidation.testing === true &&
+//       this.rangeValidation.simulation === true &&
+//       this.timelineData
+//     );
+//   }
+
+//   async trainModel(): Promise<void> {
+//     if (!this.uploadResult) {
+//       return;
+//     }
+//     if (!this.uploadResult.datasetId || !this.uploadResult.userId || !this.uploadResult.dateRange) {
+//       console.error('Cannot train model: Missing datasetId, userId, or date ranges.');
+//       return;
+//     }
+//     this.isTraining = true;
+//     this.trainingProgress = 0;
+//     this.trainingResults = null;
+//     this.trainingProgress = 10;
+//     try {
+//       const response = await firstValueFrom(
+//         this.uploadService.trainModel(this.uploadResult.datasetId, this.uploadResult.userId, this.dateRanges)
+//       );
+//       console.log(response);
+//       this.trainingResults = response;
+//       this.trainingProgress = 100;
+//       this.generateConfusionMatrix();
+//     } catch (error) {
+//       console.error('Training API call failed:', error);
+//       this.trainingProgress = 0;
+//     } finally {
+//       this.isTraining = false;
+//     }
+//   }
+
+//   toggleSimulation(): void {
+//     if (this.simulationStatus === 'idle' || this.simulationStatus === 'completed') {
+//       this.startSimulation();
+//     } else if (this.simulationStatus === 'running') {
+//       this.stopSimulation();
+//     }
+//   }
+
+//   getSimulationStatusText(): string {
+//     switch (this.simulationStatus) {
+//       case 'idle': return 'Ready to start';
+//       case 'running': return 'Streaming predictions';
+//       case 'stopping': return 'Stopping...';
+//       case 'completed': return 'Simulation complete';
+//       default: return 'Unknown';
+//     }
+//   }
+
+//   getSimulationButtonText(): string {
+//     switch (this.simulationStatus) {
+//       case 'idle': return 'Start Simulation';
+//       case 'running': return 'Stop Simulation';
+//       case 'stopping': return 'Stopping...';
+//       case 'completed': return 'Restart Simulation';
+//       default: return 'Start Simulation';
+//     }
+//   }
+
+//   getDuration(start: Date | string, end: Date | string): string {
+//     if (!start || !end) {
+//       return 'Invalid dates';
+//     }
+//     const startDate = typeof start === 'string' ? new Date(start) : start;
+//     const endDate = typeof end === 'string' ? new Date(end) : end;
+//     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+//       return 'Invalid dates';
+//     }
+//     if (startDate >= endDate) {
+//       return 'Invalid range';
+//     }
+//     const diffMs = endDate.getTime() - startDate.getTime();
+//     const minutes = Math.floor(diffMs / (1000 * 60));
+//     const hours = Math.floor(diffMs / (1000 * 60 * 60));
+//     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+//     const weeks = Math.floor(days / 7);
+//     const months = Math.floor(days / 30.44);
+//     const years = Math.floor(days / 365.25);
+//     if (years >= 1) {
+//       return years === 1 ? '1 year' : `${years} years`;
+//     } else if (months >= 1) {
+//       return months === 1 ? '1 month' : `${months} months`;
+//     } else if (weeks >= 1) {
+//       return weeks === 1 ? '1 week' : `${weeks} weeks`;
+//     } else if (days >= 1) {
+//       return days === 1 ? '1 day' : `${days} days`;
+//     } else if (hours >= 1) {
+//       return hours === 1 ? '1 hour' : `${hours} hours`;
+//     } else if (minutes >= 1) {
+//       return minutes === 1 ? '1 minute' : `${minutes} minutes`;
+//     } else {
+//       return 'Less than 1 minute';
+//     }
+//   }
+
+//   formatDateRangeChart(start: Date | string, end: Date | string): string {
+//     if (!start || !end) {
+//       return 'Invalid dates';
+//     }
+//     const startDate = typeof start === 'string' ? new Date(start) : start;
+//     const endDate = typeof end === 'string' ? new Date(end) : end;
+//     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+//       return 'Invalid dates';
+//     }
+//     if (startDate >= endDate) {
+//       return 'Invalid range';
+//     }
+//     const options: Intl.DateTimeFormatOptions = {
+//       month: 'short',
+//       day: 'numeric'
+//     };
+//     const optionsWithYear: Intl.DateTimeFormatOptions = {
+//       month: 'short',
+//       day: 'numeric',
+//       year: 'numeric'
+//     };
+//     if (startDate.getFullYear() === endDate.getFullYear()) {
+//       const startFormatted = startDate.toLocaleDateString('en-US', options);
+//       const endFormatted = endDate.toLocaleDateString('en-US', optionsWithYear);
+//       return `${startFormatted} - ${endFormatted}`;
+//     } else {
+//       const startFormatted = startDate.toLocaleDateString('en-US', optionsWithYear);
+//       const endFormatted = endDate.toLocaleDateString('en-US', optionsWithYear);
+//       return `${startFormatted} - ${endFormatted}`;
+//     }
+//   }
+
+//   updateMonthlyChart(): void {
+//     this.createMonthlyChart();
+//   }
+
+//   getTotal(): number {
+//     if (!this.confusionMatrix) return 0;
+//     const { truePositive, falsePositive, falseNegative, trueNegative } = this.confusionMatrix;
+//     return truePositive + falsePositive + falseNegative + trueNegative;
+//   }
+
+//   getSegmentPercentage(value: number): number {
+//     if (!value) return 0;
+//     const total = this.getTotal();
+//     if (total === 0) {
+//       return 0;
+//     }
+//     return (value / total) * 100;
+//   }
+
+//   private clearIntervals(): void {
+//     if (this.simulationInterval) clearInterval(this.simulationInterval);
+//     if (this.progressInterval) clearInterval(this.progressInterval);
+//   }
+
+//   private resetDateRanges(): void {
+//     this.dateRanges = { training: { start: '', end: '' }, testing: { start: '', end: '' }, simulation: { start: '', end: '' } };
+//     this.rangeValidation = { training: null, testing: null, simulation: null };
+//     this.rangeCounts = { training: 0, testing: 0, simulation: 0 };
+//     this.timelineData = null;
+//   }
+
+//   private resetTraining(): void {
+//     this.isTraining = false;
+//     this.trainingProgress = 0;
+//     this.trainingResults = null;
+//     this.confusionMatrix = { truePositive: 0, falsePositive: 0, trueNegative: 0, falseNegative: 0 };
+//   }
+
+//   private processFile(file: File): void {
+//     this.errorMessage = '';
+//     if (!file.name.toLowerCase().endsWith('.csv')) {
+//       this.errorMessage = 'Please select a valid CSV file (.csv extension required)';
+//       return;
+//     }
+//     const maxSizeInMB = 2500;
+//     const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+//     if (file.size > maxSizeInBytes) {
+//       this.errorMessage = `File size must be less than ${maxSizeInMB}MB`;
+//       return;
+//     }
+//     this.selectedFile = file;
+//     this.uploadFile(file);
+//   }
+
+//   private uploadFile(file: File): void {
+//     this.isUploading = true;
+//     this.errorMessage = '';
+//     this.uploadProgress = 0;
+//     const userId = localStorage.getItem('username') || 'anonymous_user';
+//     this.uploadService.uploadFileWithProgress(file, userId).subscribe({
+//       next: (result: UploadResult) => {
+//         this.uploadResult = result;
+//         console.log('Upload complete!', this.uploadResult);
+//         this.uploadProgress = 100;
+//       },
+//       error: (err) => {
+//         this.errorMessage = 'Failed to upload file. Please try again.';
+//         console.error('Upload error:', err);
+//         this.isUploading = false;
+//         this.uploadProgress = 0;
+//       },
+//       complete: () => {
+//         this.isUploading = false;
+//         setTimeout(() => this.uploadProgress = 0, 2000);
+//       }
+//     });
+//   }
+
+//   private delay(ms: number): Promise<void> {
+//     return new Promise(resolve => setTimeout(resolve, ms));
+//   }
+
+//   private formatDateForInput(dateValue: string | Date): string {
+//     if (!dateValue) {
+//       return '';
+//     }
+//     const date = new Date(dateValue);
+//     if (isNaN(date.getTime())) {
+//       return '';
+//     }
+//     const year = date.getFullYear();
+//     const month = ('0' + (date.getMonth() + 1)).slice(-2);
+//     const day = ('0' + date.getDate()).slice(-2);
+//     const hours = ('0' + date.getHours()).slice(-2);
+//     const minutes = ('0' + date.getMinutes()).slice(-2);
+//     const seconds = ('0' + date.getSeconds()).slice(-2);
+//     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+//   }
+
+//   private generateConfusionMatrix(): void {
+//     if (!this.trainingResults) {
+//       console.error("Cannot generate confusion matrix: training results are null.");
+//       return;
+//     }
+//     const metrics = this.trainingResults.metrics;
+//     console.log(metrics);
+//     this.confusionMatrix = {
+//       truePositive: metrics.truePositive,
+//       falsePositive: metrics.falsePositive,
+//       trueNegative: metrics.trueNegative,
+//       falseNegative: metrics.falseNegative
+//     };
+//     console.log("Generated real confusion matrix:", this.confusionMatrix);
+//   }
+
+//   private startSimulation(): void {
+//     if (this.uploadResult && (!this.uploadResult.userId || !this.uploadResult.datasetId)) {
+//       console.error("Cannot start simulation: userId or datasetId is missing.");
+//       return;
+//     }
+//     this.resetSimulationData();
+//     this.simulationStatus = 'running';
+//     this.simulationService.connect();
+//     setTimeout(() => {
+//       this.createRealtimeChart();
+
+//       this.simSubscription = this.simulationService.messages$.subscribe({
+//         next: (message: SimulationMessage) => this.processSimulationMessage(message),
+//         error: (err) => {
+//           console.error('WebSocket Error:', err);
+//           this.simulationStatus = 'idle';
+//         },
+//         complete: () => {
+//           console.log('WebSocket stream completed.');
+//           this.simulationStatus = 'completed';
+//         }
+//       });
+//       this.simulationService.startSimulation(this.uploadResult!.userId, this.uploadResult!.datasetId);
+//     }, 0);
+//   }
+
+//   private stopSimulation(): void {
+//     if (this.uploadResult && (!this.uploadResult.userId || !this.uploadResult.datasetId)) return;
+//     this.simulationStatus = 'stopping';
+//     this.simulationService.stopSimulation(this.uploadResult!.userId, this.uploadResult!.datasetId);
+//   }
+
+//   private processSimulationMessage(message: SimulationMessage): void {
+//     if ('rowIndex' in message) {
+//       const result = message as SimulationResult;
+//       const newPrediction: RealtimePrediction = {
+//         rowIndex: result.rowIndex,
+//         timestamp: new Date(result.timestamp),
+//         prediction: result.prediction === 1 ? 'pass' : 'fail',
+//         confidence: result.confidence,
+//         isCorrect: result.isCorrect
+//       };
+//       this.realtimeData.push(newPrediction);
+//       this.updateSimulationStats(newPrediction);
+//       this.updateConfidenceDistribution();
+//       this.updateRealtimeChart(newPrediction);
+//     } else if (message.status) {
+//       if (message.status === 'stopped' || message.status === 'finished') {
+//         this.simulationStatus = 'completed';
+//         this.simSubscription?.unsubscribe();
+//       }
+//     } else if (message.error) {
+//       console.error("Error from simulation server:", message.error);
+//       this.stopSimulation();
+//     }
+//   }
+
+//   private resetSimulationData(): void {
+//     this.realtimeData = [];
+//     this.simulationStats = { totalPredictions: 0, passCount: 0, failCount: 0, correctCount: 0, currentAccuracy: 0 };
+//     this.updateConfidenceDistribution();
+//   }
+
+//   private updateSimulationStats(prediction: RealtimePrediction): void {
+//     this.simulationStats.totalPredictions++;
+//     prediction.prediction === 'pass' ? this.simulationStats.passCount++ : this.simulationStats.failCount++;
+//     if (prediction.isCorrect) {
+//       this.simulationStats.correctCount++;
+//     }
+//     this.simulationStats.currentAccuracy = (this.simulationStats.correctCount / this.simulationStats.totalPredictions) * 100;
+//   }
+
+//   private updateConfidenceDistribution(): void {
+//     if (this.realtimeData.length === 0) {
+//       this.confidenceDistribution = { high: 0, medium: 0, low: 0 };
+//       return;
+//     }
+//     let high = 0, medium = 0, low = 0;
+//     this.realtimeData.forEach(p => {
+//       if (p.confidence > 0.9) high++;
+//       else if (p.confidence > 0.8) medium++;
+//       else low++;
+//     });
+//     const total = this.realtimeData.length;
+//     this.confidenceDistribution = {
+//       high: (high / total) * 100,
+//       medium: (medium / total) * 100,
+//       low: (low / total) * 100
+//     };
+//   }
+
+//   private processDateRangesForChart(): MonthlyData[] {
+//     if (!this.dateRanges.training.start || !this.dateRanges.simulation.end) {
+//       return [];
+//     }
+//     const overallStart = new Date(this.dateRanges.training.start);
+//     const overallEnd = new Date(this.dateRanges.simulation.end);
+//     const monthlyDataMap = new Map<string, MonthlyData>();
+//     const currentDate = new Date(overallStart.getFullYear(), overallStart.getMonth(), 1);
+//     const endDate = new Date(overallEnd.getFullYear(), overallEnd.getMonth() + 1, 0);
+//     while (currentDate <= endDate) {
+//       const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
+//       const monthName = currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+//       monthlyDataMap.set(monthKey, {
+//         month: monthName,
+//         year: currentDate.getFullYear(),
+//         trainingDays: 0,
+//         testingDays: 0,
+//         simulationDays: 0,
+//         totalDays: 0
+//       });
+//       currentDate.setMonth(currentDate.getMonth() + 1);
+//     }
+//     this.calculateDaysPerMonth(
+//       new Date(this.dateRanges.training.start),
+//       new Date(this.dateRanges.training.end),
+//       monthlyDataMap,
+//       'training'
+//     );
+//     this.calculateDaysPerMonth(
+//       new Date(this.dateRanges.testing.start),
+//       new Date(this.dateRanges.testing.end),
+//       monthlyDataMap,
+//       'testing'
+//     );
+//     this.calculateDaysPerMonth(
+//       new Date(this.dateRanges.simulation.start),
+//       new Date(this.dateRanges.simulation.end),
+//       monthlyDataMap,
+//       'simulation'
+//     );
+//     let totalTrainingDays = 0;
+//     let totalTestingDays = 0;
+//     let totalSimulationDays = 0;
+//     Array.from(monthlyDataMap.values()).forEach(data => {
+//       totalTrainingDays += data.trainingDays;
+//       totalTestingDays += data.testingDays;
+//       totalSimulationDays += data.simulationDays;
+//     });
+//     const trainingRecordsPerDay = totalTrainingDays > 0 ? this.rangeCounts.training / totalTrainingDays : 0;
+//     const testingRecordsPerDay = totalTestingDays > 0 ? this.rangeCounts.testing / totalTestingDays : 0;
+//     const simulationRecordsPerDay = totalSimulationDays > 0 ? this.rangeCounts.simulation / totalSimulationDays : 0;
+//     const monthlyData = Array.from(monthlyDataMap.values()).map(data => {
+//       const trainingRecords = Math.round(data.trainingDays * trainingRecordsPerDay);
+//       const testingRecords = Math.round(data.testingDays * testingRecordsPerDay);
+//       const simulationRecords = Math.round(data.simulationDays * simulationRecordsPerDay);
+//       return {
+//         ...data,
+//         trainingDays: trainingRecords,
+//         testingDays: testingRecords,
+//         simulationDays: simulationRecords,
+//         totalDays: trainingRecords + testingRecords + simulationRecords
+//       };
+//     });
+//     return monthlyData.filter(data => data.totalDays > 0);
+//   }
+
+//   private calculateDaysPerMonth(
+//     startDate: Date,
+//     endDate: Date,
+//     monthlyDataMap: Map<string, MonthlyData>,
+//     periodType: 'training' | 'testing' | 'simulation'
+//   ): void {
+//     const currentDate = new Date(startDate);
+//     while (currentDate <= endDate) {
+//       const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
+//       const monthData = monthlyDataMap.get(monthKey);
+//       if (monthData) {
+//         switch (periodType) {
+//           case 'training':
+//             monthData.trainingDays += 1;
+//             break;
+//           case 'testing':
+//             monthData.testingDays += 1;
+//             break;
+//           case 'simulation':
+//             monthData.simulationDays += 1;
+//             break;
+//         }
+//       }
+//       currentDate.setDate(currentDate.getDate() + 1);
+//     }
+//   }
+
+//   private createMonthlyChart(): void {
+//     console.log('Creating monthly chart...');
+//     if (!this.chartCanvas?.nativeElement) {
+//       console.error('Chart canvas not available');
+//       return;
+//     }
+//     if (!this.dateRanges.training.start || !this.dateRanges.simulation.end) {
+//       console.warn('Date ranges not available for chart');
+//       return;
+//     }
+//     const monthlyData = this.processDateRangesForChart();
+//     if (monthlyData.length === 0) {
+//       console.warn('No monthly data available for chart');
+//       return;
+//     }
+//     console.log('Monthly data for chart:', monthlyData);
+//     const labels = monthlyData.map(data => data.month);
+//     const trainingData = monthlyData.map(data => data.trainingDays);
+//     const testingData = monthlyData.map(data => data.testingDays);
+//     const simulationData = monthlyData.map(data => data.simulationDays);
+//     if (this.monthlyChart) {
+//       this.monthlyChart.destroy();
+//       this.monthlyChart = null;
+//     }
+//     const ctx = this.chartCanvas.nativeElement.getContext('2d');
+//     if (!ctx) {
+//       console.error('Could not get canvas context');
+//       return;
+//     }
+//     const config: ChartConfiguration = {
+//       type: 'bar' as ChartType,
+//       data: {
+//         labels: labels,
+//         datasets: [
+//           {
+//             label: 'Training',
+//             data: trainingData,
+//             backgroundColor: this.chartColors.training,
+//             borderColor: this.chartColors.training,
+//             borderWidth: 1,
+//             stack: 'records'
+//           },
+//           {
+//             label: 'Testing',
+//             data: testingData,
+//             backgroundColor: this.chartColors.testing,
+//             borderColor: this.chartColors.testing,
+//             borderWidth: 1,
+//             stack: 'records'
+//           },
+//           {
+//             label: 'Simulation',
+//             data: simulationData,
+//             backgroundColor: this.chartColors.simulation,
+//             borderColor: this.chartColors.simulation,
+//             borderWidth: 1,
+//             stack: 'records'
+//           }
+//         ]
+//       },
+//       options: {
+//         responsive: true,
+//         maintainAspectRatio: false,
+//         interaction: {
+//           intersect: false,
+//           mode: 'index'
+//         },
+//         plugins: {
+//           title: {
+//             display: true,
+//             text: 'Monthly Data Distribution',
+//             font: {
+//               size: 16,
+//               weight: 'bold'
+//             }
+//           },
+//           legend: {
+//             position: 'top',
+//             labels: {
+//               usePointStyle: true,
+//               padding: 20
+//             }
+//           },
+//           tooltip: {
+//             mode: 'index',
+//             intersect: false,
+//             callbacks: {
+//               label: (context) => {
+//                 const label = context.dataset.label || '';
+//                 const value = context.parsed.y || 0;
+//                 return `${label}: ${value.toLocaleString()} records`;
+//               },
+//               footer: (tooltipItems) => {
+//                 const total = tooltipItems.reduce((sum, item) => sum + (item.parsed.y || 0), 0);
+//                 return `Total: ${total.toLocaleString()} records`;
+//               }
+//             }
+//           }
+//         },
+//         scales: {
+//           x: {
+//             title: {
+//               display: true,
+//               text: 'Time Period (Months)',
+//               font: {
+//                 size: 14,
+//                 weight: 'bold'
+//               }
+//             },
+//             grid: {
+//               display: false
+//             }
+//           },
+//           y: {
+//             title: {
+//               display: true,
+//               text: 'Number of Records',
+//               font: {
+//                 size: 14,
+//                 weight: 'bold'
+//               }
+//             },
+//             beginAtZero: true,
+//             stacked: true,
+//             ticks: {
+//               callback: function (value) {
+//                 return typeof value === 'number' ? value.toLocaleString() : value;
+//               }
+//             }
+//           }
+//         }
+//       }
+//     };
+//     try {
+//       this.monthlyChart = new Chart(ctx, config);
+//       console.log('Chart created successfully');
+//     } catch (error) {
+//       console.error('Error creating chart:', error);
+//     }
+//   }
+
+//   // --- MODIFIED: Function to initialize the real-time chart ---
+//   private createRealtimeChart(): void {
+//     // Prevent re-creation if the chart already exists
+//     if (this.realtimeChart) {
+//       return;
+//     }
+
+//     console.log(this.realtimeChart)
+//     const ctx = this.realtimeChartCanvas.nativeElement.getContext('2d');
+//     if (!ctx) return;
+
+//     // Create a gradient for the chart background
+//     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+//     gradient.addColorStop(0, 'rgba(75, 192, 192, 0.6)');
+//     gradient.addColorStop(1, 'rgba(75, 192, 192, 0)');
+
+//     const config: ChartConfiguration = {
+//       type: 'line' as ChartType,
+//       data: {
+//         labels: [], // Start with empty labels
+//         datasets: [{
+//           label: 'Confidence Score',
+//           data: [], // Start with empty data
+//           borderColor: 'rgba(75, 192, 192, 1)',
+//           backgroundColor: gradient,
+//           fill: true,
+//           tension: 0.4,
+//           pointRadius: 0, // Hide points for a cleaner look
+//         }]
+//       },
+//       options: {
+//         responsive: true,
+//         maintainAspectRatio: false,
+//         scales: {
+//           x: {
+//             type: 'category', // Use category for timestamps
+//             ticks: { display: false }, // Hide x-axis labels for a cleaner look
+//             grid: { display: false }
+//           },
+//           y: {
+//             beginAtZero: true,
+//             max: 100,
+//             ticks: {
+//               callback: (value) => `${value}%` // Format y-axis labels as percentages
+//             }
+//           }
+//         },
+//         plugins: {
+//           legend: { display: false },
+//           tooltip: {
+//             mode: 'index',
+//             intersect: false,
+//             callbacks: {
+//               label: (context) => `Confidence: ${context.parsed.y.toFixed(2)}%`
+//             }
+//           }
+//         }
+//       }
+//     };
+//     this.realtimeChart = new Chart(ctx, config);
+//   }
+
+//   // --- Function to update the chart with a new data point ---
+//   private updateRealtimeChart(prediction: RealtimePrediction): void {
+//     if (!this.realtimeChart) return;
+
+//     const chartData = this.realtimeChart.data;
+
+//     // Add new label (timestamp) and data (confidence)
+//     const timestamp = new Date(prediction.timestamp).toLocaleTimeString();
+//     chartData.labels?.push(timestamp);
+//     chartData.datasets[0].data.push(prediction.confidence * 100);
+
+//     // Implement a "sliding window" to keep the chart performant
+//     const maxDataPoints = 50;
+//     if (chartData.labels && chartData.labels.length > maxDataPoints) {
+//       chartData.labels.shift(); // Remove the oldest label
+//       chartData.datasets[0].data.shift(); // Remove the oldest data point
+//     }
+
+//     // Redraw the chart
+//     this.realtimeChart.update();
+//   }
+
+//   private updateChartAfterValidation(): void {
+//     console.log('Updating chart after validation...');
+//     setTimeout(() => {
+//       this.updateMonthlyChart();
+//     }, 500);
+//   }
+// }
 
 // import { CommonModule } from '@angular/common';
 // import { Component, HostBinding, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
