@@ -262,10 +262,10 @@
                 <td rowspan="4">Afternoon</td>
                 <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
                 <td><strong>Screen 3 UI: Final Visualization</strong></td>
-                <td><strong>Naghul</strong></td>
+                <td><strong>Naghul & Harsha</strong></td>
                 <td class="task-details">On API success, populate performance metric cards. Render charts. Display the
                     Base64 SHAP plot image received from the API.</td>
-                <td class="status-not-started">Not Started</td>
+                <td class="status-completed">Complete</td>
                 <td class="queries"></td>
             </tr>
             <tr>
@@ -274,17 +274,17 @@
                 <td><strong>Naghul</strong></td>
                 <td class="task-details">Ensure the DTOs (Data Transfer Objects) between the backend and frontend can
                     handle the Base64 string for the SHAP plot without issues.</td>
-                <td class="status-not-started">Not Started</td>
+                <td class="status-completed">Complete</td>
                 <td class="queries"></td>
             </tr>
             <tr>
                 <td class="participant-ml"><strong>P3 (ML)</strong></td>
                 <td><strong>XAI Integration: SHAP Plot Generation</strong></td>
-                <td><strong>Naghul</strong></td>
+                <td><strong>Ragavi & Mahalakshmi</strong></td>
                 <td class="task-details">Enhance the `/train` endpoint. After training, use `shap` to calculate feature
                     importance. Generate a summary plot, save to an in-memory buffer, and encode as a Base64 string in
                     the API response.</td>
-                <td class="status-not-started">Not Started</td>
+                <td class="status-completed">Complete</td>
                 <td class="queries">
                 </td>
             </tr>
@@ -299,39 +299,43 @@
             </tr>
 
             <!-- DAY 3 -->
-            <!-- <tr class="header-day3">
+            <tr class="header-day3">
                 <td colspan="7"><strong>Day 3: Real-Time Simulation & Final Delivery</strong></td>
             </tr>
             <tr>
                 <td rowspan="4">3</td>
-                <td rowspan="4">Morning (Hours 20-25)</td>
+                <td rowspan="4">Morning</td>
                 <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
                 <td><strong>SignalR Service & Screen 4 UI Setup</strong></td>
+                <td><strong>Naghul & Harsha</strong></td>
                 <td class="task-details">Install `@microsoft/signalr`. Create an Angular service to manage the WebSocket
                     connection. Build the static layout for the Simulation screen (Screen 4).</td>
-                <td class="status-not-started">Not Started</td>
-                <td class="queries">Need the SignalR hub URL from the backend.</td>
+                <td class="status-in-progress">In Progress</td>
+                <td class="queries"></td>
             </tr>
             <tr>
                 <td class="participant-be"><strong>P2 (Backend)</strong></td>
                 <td><strong>SignalR Hub & Simulation Service</strong></td>
+                <td><strong>Naghul</strong></td>
                 <td class="task-details">Implement `SimulationHub` with SignalR. Create the background service with a
                     producer-consumer pattern to read data, call the ML service for predictions, and broadcast results
                     via the hub.</td>
-                <td class="status-not-started">Not Started</td>
+                <td class="status-completed">Complete</td>
                 <td class="queries"></td>
             </tr>
             <tr>
                 <td class="participant-ml"><strong>P3 (ML)</strong></td>
-                <td><strong>ML Endpoint: /predict-one</strong></td>
-                <td class="task-details">Create a low-latency endpoint for single predictions. Load the model into
+                <td><strong>ML Endpoint: /simulation-ws</strong></td>
+                <td><strong>Ragavi & Mahalakshmi</strong></td>
+                <td class="task-details">Create a low-latency websockt for simulation. Load the model into
                     memory on application startup to avoid reload overhead.</td>
-                <td class="status-not-started">Not Started</td>
+                <td class="status-completed">Complete</td>
                 <td class="queries"></td>
             </tr>
             <tr>
                 <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
                 <td><strong>Finalize Design Document</strong></td>
+                <td><strong>All Members</strong></td>
                 <td class="task-details">Complete the `Design Document.pdf`. Embed the finalized architecture and data
                     flow diagrams. Write concise descriptions for all design choices and the API contract.</td>
                 <td class="status-not-started">Not Started</td>
@@ -339,48 +343,53 @@
             </tr>
             <tr>
                 <td rowspan="4">3</td>
-                <td rowspan="4">Afternoon (Hours 25-32)</td>
+                <td rowspan="4">Afternoon</td>
                 <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
                 <td><strong>Live Simulation Dashboard</strong></td>
+                <td><strong>Naghul & Harsha</strong></td>
                 <td class="task-details">Connect the Screen 4 component to the SignalR service. As data streams in,
                     update all UI elements in real-time: stats, charts, and the live prediction table.</td>
-                <td class="status-not-started">Not Started</td>
+                <td class="status-in-progress">In Progress</td>
                 <td class="queries"></td>
             </tr>
             <tr>
                 <td class="participant-be"><strong>P2 (Backend)</strong></td>
                 <td><strong>Integration & Stress Testing</strong></td>
+                <td><strong>Naghul</strong></td>
                 <td class="task-details">Work with Frontend and ML leads to ensure the entire simulation pipeline is
                     robust. Test for dropped connections and error handling.</td>
-                <td class="status-not-started">Not Started</td>
+                <td class="status-in-progress">In Progress</td>
                 <td class="queries"></td>
             </tr>
             <tr>
                 <td class="participant-ml"><strong>P3 (ML)</strong></td>
                 <td><strong>Model & Code Cleanup</strong></td>
+                <td><strong>Ragavi & Mahalakshmi</strong></td>
                 <td class="task-details">Review all Python code for clarity and comments. Ensure the model artifact is
                     saved and loaded correctly. Finalize feature selection logic.</td>
-                <td class="status-completed">Completed</td>
+                <td class="status-in-progress">In Progress</td>
                 <td class="queries"></td>
             </tr>
             <tr>
                 <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
                 <td><strong>Finalize README & Demo Video Script</strong></td>
+                <td><strong>All Members</strong></td>
                 <td class="task-details">Write the final, comprehensive `README.md` with foolproof deployment
                     instructions. Write the detailed script and shot list for the 3-minute demo video.</td>
-                <td class="status-in-progress">In Progress</td>
+                <td class="status-not-started">Not Started</td>
                 <td class="queries"></td>
             </tr>
             <tr>
                 <td rowspan="4">3</td>
-                <td rowspan="4">Evening (Hours 32-34)</td>
-                <td colspan="2"><strong>All Hands on Deck</strong></td>
+                <td rowspan="4">Evening</td>
+                <td colspan="1"><strong>All Hands on Deck</strong></td>
                 <td><strong>Demo Video Recording & Final Submission</strong></td>
+                <td><strong>All Members</strong></td>
                 <td class="task-details">Record the screen capture for the demo video (P1). Record the voiceover (P4).
                     Edit the video (P2). Final code review and merge to main (P3). Zip and submit all artifacts.</td>
                 <td class="status-not-started">Not Started</td>
-                <td class="queries">Who has the quietest room for recording the voiceover?</td>
-            </tr> -->
+                <td class="queries"></td>
+            </tr>
         </tbody>
     </table>
 
