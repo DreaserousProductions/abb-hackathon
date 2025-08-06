@@ -1,6 +1,7 @@
 services:
   frontend:
     build: ./frontend
+    image: dreaserous/abb-hackathon:frontend
     ports:
       - "4200:80"
     depends_on:
@@ -10,33 +11,31 @@ services:
 
   backend:
     build: ./backend
+    image: dreaserous/abb-hackathon:backend
     ports:
       - "5000:5000"
     depends_on:
-      - ml_service # Backend depends on the ML service
+      - ml_service
     networks:
       - abb-network
 
-  # --- ML Service Configuration ---
   ml_service:
     build: ./ml_service
+    image: dreaserous/abb-hackathon:ml-service
     ports:
       - "8000:8000"
     depends_on:
-      - redis # ML service depends on Redis
+      - redis
     environment:
-      # Pass the Redis host as an environment variable
       - REDIS_HOST=redis
     networks:
       - abb-network
     volumes:
-      # Persist data outside the container
       - ./data_store:/app/data_store
       - ./models:/app/models
 
-  # --- Redis Service Configuration ---
   redis:
-    image: "redis:alpine" # Use the official Redis image
+    image: "redis:alpine"
     ports:
       - "6379:6379"
     networks:
@@ -45,36 +44,3 @@ services:
 networks:
   abb-network:
     driver: bridge
-
-# services:
-#   frontend:
-#     build: ./frontend
-#     ports:
-#       - "4200:80"
-#     depends_on:
-#       - backend
-#     # networks:
-#     #   - abb-network
-
-#   backend:
-#     build: ./backend
-#     ports:
-#       - "5000:5000"
-#     # depends_on:
-#     #   - ml_service
-#     # networks:
-#     #   - abb-network
-#     # volumes:
-#     #   - ./data:/app/data
-
-#   # ml_service:
-#   #   build: ./ml_service
-#   #   ports:
-#   #     - "8000:8000"
-#   #   networks:
-#   #     - abb-network
-#   #   volumes:
-#   #     - ./data:/app/data
-
-# networks:
-#   abb-network:
