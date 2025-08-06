@@ -4,7 +4,7 @@ obj/
 __pycache__/
 .vscode/
 
-ml_service/
+# ml_service/
 
 *.pyc
 .env
