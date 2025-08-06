@@ -1459,7 +1459,6 @@
 }
 
 :host(.theme-legacy) .chart-container {
-    height: 240px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1597,7 +1596,7 @@
 
 :host(.theme-legacy) .stream-header {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 100px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 90px;
     gap: 1rem;
     padding: 1.5rem;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -1616,7 +1615,7 @@
 
 :host(.theme-legacy) .stream-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 100px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 90px;
     gap: 1rem;
     padding: 1rem 1.5rem;
     border-bottom: 1px solid #f1f5f9;
@@ -1637,6 +1636,7 @@
     border-left: 4px solid #ef4444;
 }
 
+:host(.theme-legacy) .rowIndex,
 :host(.theme-legacy) .timestamp {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
@@ -3438,7 +3438,6 @@
 }
 
 :host(.theme-new) .chart-container {
-    height: 200px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -3563,7 +3562,7 @@
 
 :host(.theme-new) .stream-header {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 80px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 90px;
     gap: 1rem;
     padding: 1rem;
     background: var(--overlay-25);
@@ -3582,7 +3581,7 @@
 
 :host(.theme-new) .stream-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 80px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 90px;
     gap: 1rem;
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--overlay-25);
@@ -3602,6 +3601,7 @@
     border-left: 3px solid #ef4444;
 }
 
+:host(.theme-new) .rowIndex,
 :host(.theme-new) .timestamp {
     font-family: 'Doto', monospace;
     font-size: 13px;
@@ -4051,4 +4051,496 @@
     :host(.theme-new) .confidence-labels {
         font-size: 10px;
     }
+}
+
+/* Addition */
+/* Legacy Theme Styles */
+:host(.theme-legacy) .data-overview-section {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+:host(.theme-legacy) .data-overview-section h4 {
+    margin-bottom: 2rem;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+}
+
+:host(.theme-legacy) .summary-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+:host(.theme-legacy) .summary-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid #f1f5f9;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+:host(.theme-legacy) .summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+:host(.theme-legacy) .summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+:host(.theme-legacy) .summary-card.testing-card::before {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+:host(.theme-legacy) .summary-card.simulation-card::before {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+:host(.theme-legacy) .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+:host(.theme-legacy) .card-icon-1 {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    position: relative;
+    flex-shrink: 0;
+}
+
+:host(.theme-legacy) .card-icon-1::after {
+    content: '🎯';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+}
+
+:host(.theme-legacy) .testing-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+:host(.theme-legacy) .testing-icon::after {
+    content: '🧪';
+}
+
+:host(.theme-legacy) .simulation-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+:host(.theme-legacy) .simulation-icon::after {
+    content: '⚡';
+}
+
+:host(.theme-legacy) .card-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+}
+
+:host(.theme-legacy) .card-content {
+    text-align: center;
+}
+
+:host(.theme-legacy) .duration-display {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+}
+
+:host(.theme-legacy) .date-range {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+:host(.theme-legacy) .chart-container1 {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    border: 2px solid #f1f5f9;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+}
+
+:host(.theme-legacy) .chart-placeholder {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:host(.theme-legacy) .chart-content {
+    width: 100%;
+    height: 100%;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    min-height: 400px;
+}
+
+:host(.theme-legacy) .chart-content canvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+/* New Theme Styles */
+:host(.theme-new) .data-overview-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--overlay-25);
+    border-radius: var(--rounded-md);
+    animation: slideUp 0.5s ease;
+}
+
+:host(.theme-new) .data-overview-section h4 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+:host(.theme-new) .summary-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+:host(.theme-new) .summary-card {
+    background: var(--bg-primary);
+    border-radius: var(--rounded-sm);
+    padding: 1.25rem;
+    border: 1px solid var(--overlay-25);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+:host(.theme-new) .summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+:host(.theme-new) .summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #3b82f6;
+    border-radius: var(--rounded-sm) var(--rounded-sm) 0 0;
+}
+
+:host(.theme-new) .summary-card.testing-card::before {
+    background: #f59e0b;
+}
+
+:host(.theme-new) .summary-card.simulation-card::before {
+    background: #10b981;
+}
+
+:host(.theme-new) .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+:host(.theme-new) .card-icon-1 {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: #3b82f6;
+    position: relative;
+    flex-shrink: 0;
+}
+
+:host(.theme-new) .card-icon-1::after {
+    content: '🎯';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+}
+
+:host(.theme-new) .testing-icon {
+    background: #f59e0b;
+}
+
+:host(.theme-new) .testing-icon::after {
+    content: '🧪';
+}
+
+:host(.theme-new) .simulation-icon {
+    background: #10b981;
+}
+
+:host(.theme-new) .simulation-icon::after {
+    content: '⚡';
+}
+
+:host(.theme-new) .card-header h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+:host(.theme-new) .card-content {
+    text-align: center;
+}
+
+:host(.theme-new) .duration-display {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+:host(.theme-new) .date-range {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+:host(.theme-new) .chart-container1 {
+    background: var(--bg-primary);
+    border-radius: var(--rounded-sm);
+    border: 1px solid var(--overlay-25);
+    overflow: hidden;
+}
+
+:host(.theme-new) .chart-placeholder {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:host(.theme-new) .chart-content {
+    width: 100%;
+    height: 100%;
+    border: 1px dashed var(--overlay-25);
+    border-radius: var(--rounded-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    min-height: 400px;
+}
+
+:host(.theme-new) .chart-content canvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--rounded-sm);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+
+    :host(.theme-legacy) .summary-cards-container,
+    :host(.theme-new) .summary-cards-container {
+        grid-template-columns: 1fr;
+    }
+
+    :host(.theme-legacy) .data-overview-section,
+    :host(.theme-new) .data-overview-section {
+        padding: 1rem;
+    }
+
+    :host(.theme-legacy) .chart-placeholder,
+    :host(.theme-new) .chart-placeholder {
+        padding: 1rem;
+    }
+
+    :host(.theme-legacy) .chart-content,
+    :host(.theme-new) .chart-content {
+        min-height: 300px;
+    }
+}
+
+/* Confusion DOnut */
+/* Container for the entire confusion matrix section */
+.confusion-donut-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Container for the donut chart itself */
+.confusion-donut-container {
+    position: relative;
+    /* Needed for tooltip positioning */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+/* Styles for the SVG chart - bigger size */
+.confusion-donut-chart {
+    width: 200px;
+    height: 200px;
+    max-width: 100%;
+    transform: rotate(-90deg);
+    /* Start the chart from the top */
+}
+
+.confusion-donut-background {
+    fill: transparent;
+    stroke: #e9ecef;
+    /* A light grey background for the track */
+    stroke-width: 8;
+    /* Thicker track */
+}
+
+.confusion-donut-segment {
+    fill: transparent;
+    stroke-width: 8;
+    /* Thicker segments */
+    stroke-linecap: butt;
+    /* Flat edges */
+    transition: stroke-dasharray 0.5s ease-in-out, stroke-dashoffset 0.5s ease-in-out;
+}
+
+/* Color mapping for the chart segments */
+.confusion-donut-segment.true-positive {
+    stroke: #28a745;
+}
+
+/* Green */
+.confusion-donut-segment.false-positive {
+    stroke: #dc3545;
+}
+
+/* Red */
+.confusion-donut-segment.false-negative {
+    stroke: #ffc107;
+}
+
+/* Yellow */
+.confusion-donut-segment.true-negative {
+    stroke: #0d6efd;
+}
+
+/* Blue */
+
+/* Text inside the chart */
+.confusion-donut-text-group {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    transform: rotate(90deg) translate(0, -42px);
+    /* Counter-rotate the text */
+}
+
+.confusion-donut-number {
+    font-size: 0.5em;
+    font-weight: 700;
+    line-height: 1;
+    text-anchor: middle;
+    transform: translateY(-0.25em);
+    fill: #333;
+}
+
+.confusion-donut-label {
+    font-size: 0.2em;
+    font-weight: 500;
+    text-transform: uppercase;
+    text-anchor: middle;
+    transform: translateY(0.7em);
+    fill: #666;
+}
+
+/* Tooltip styles - replaces the legend */
+.confusion-donut-tooltip {
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.confusion-donut-container:hover .confusion-donut-tooltip {
+    opacity: 1;
+}
+
+.tooltip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tooltip-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* Color mapping for the tooltip spans */
+.tooltip-color.true-positive {
+    background-color: #28a745;
+}
+
+.tooltip-color.false-positive {
+    background-color: #dc3545;
+}
+
+.tooltip-color.false-negative {
+    background-color: #ffc107;
+}
+
+.tooltip-color.true-negative {
+    background-color: #0d6efd;
 }

@@ -49,6 +49,7 @@ export interface TrainingMetrics {
 
 export interface TrainingPlots {
   featureImportance: string;
+  trainingPlot: string;
 }
 
 export interface TrainModelResponse {

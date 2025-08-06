@@ -11,7 +11,7 @@ namespace ABBHackathon.Controllers;
 public class ModelController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private const string FastAPI_BaseUrl = "http://localhost:8000"; 
+    private const string FastAPI_BaseUrl = "http://ml_service:8000"; 
 
     public ModelController(IHttpClientFactory httpClientFactory)
     {
@@ -162,6 +162,7 @@ public class TrainingMetrics
 public class TrainingPlots
 {
     public string? FeatureImportance { get; set; }
+    public string? TrainingPlot { get; set; }
 }
 
 // public class DateRangeModel { public string? Start { get; set; } public string? End { get; set; } } // Questionable

@@ -12,13 +12,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var allowedOrigins = new List<string> { "http://localhost:4200", "http://localhost" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://backend:5000", "http://localhost")  // Your Angular app's address
+        policy.SetIsOriginAllowed(origin => 
+              {
+                  return allowedOrigins.Contains(origin);
+              })
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials(); 
     });
 });
 

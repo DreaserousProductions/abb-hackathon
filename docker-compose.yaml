@@ -5,28 +5,76 @@ services:
       - "4200:80"
     depends_on:
       - backend
-    # networks:
-    #   - abb-network
+    networks:
+      - abb-network
 
   backend:
     build: ./backend
     ports:
       - "5000:5000"
-    # depends_on:
-    #   - ml_service
-    # networks:
-    #   - abb-network
-    # volumes:
-    #   - ./data:/app/data
+    depends_on:
+      - ml_service # Backend depends on the ML service
+    networks:
+      - abb-network
 
-  # ml_service:
-  #   build: ./ml_service
-  #   ports:
-  #     - "8000:8000"
-  #   networks:
-  #     - abb-network
-  #   volumes:
-  #     - ./data:/app/data
+  # --- ML Service Configuration ---
+  ml_service:
+    build: ./ml_service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis # ML service depends on Redis
+    environment:
+      # Pass the Redis host as an environment variable
+      - REDIS_HOST=redis
+    networks:
+      - abb-network
+    volumes:
+      # Persist data outside the container
+      - ./data_store:/app/data_store
+      - ./models:/app/models
+
+  # --- Redis Service Configuration ---
+  redis:
+    image: "redis:alpine" # Use the official Redis image
+    ports:
+      - "6379:6379"
+    networks:
+      - abb-network
 
 networks:
   abb-network:
+    driver: bridge
+
+# services:
+#   frontend:
+#     build: ./frontend
+#     ports:
+#       - "4200:80"
+#     depends_on:
+#       - backend
+#     # networks:
+#     #   - abb-network
+
+#   backend:
+#     build: ./backend
+#     ports:
+#       - "5000:5000"
+#     # depends_on:
+#     #   - ml_service
+#     # networks:
+#     #   - abb-network
+#     # volumes:
+#     #   - ./data:/app/data
+
+#   # ml_service:
+#   #   build: ./ml_service
+#   #   ports:
+#   #     - "8000:8000"
+#   #   networks:
+#   #     - abb-network
+#   #   volumes:
+#   #     - ./data:/app/data
+
+# networks:
+#   abb-network:

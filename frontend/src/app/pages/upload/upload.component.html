@@ -261,7 +261,7 @@
                     </div>
 
                     <!-- Timeline Visualization -->
-                    <div class="timeline-section" *ngIf="timelineData">
+                    <!-- <div class="timeline-section" *ngIf="timelineData">
                         <h4>Data Distribution Timeline</h4>
                         <div class="timeline-chart">
                             <div class="timeline-bar">
@@ -283,6 +283,79 @@
                                 <div class="legend-item simulation">
                                     <div class="legend-color"></div>
                                     <span>Simulation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                    <div class="data-overview-section" *ngIf="dateRanges">
+                        <h4>Data Overview & Analytics</h4>
+
+                        <!-- Summary Cards -->
+                        <div class="summary-cards-container">
+                            <div class="summary-card training-card">
+                                <div class="card-header">
+                                    <div class="card-icon-1 training-icon"></div>
+                                    <h5>Training Period</h5>
+                                </div>
+                                <div class="card-content">
+                                    <div class="duration-display">
+                                        {{ getDuration(dateRanges.training.start, dateRanges.training.end) }}
+                                    </div>
+                                    <div class="date-range">
+                                        {{ formatDateRangeChart(dateRanges.training.start, dateRanges.training.end) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="summary-card testing-card">
+                                <div class="card-header">
+                                    <div class="card-icon-1 testing-icon"></div>
+                                    <h5>Testing Period</h5>
+                                </div>
+                                <div class="card-content">
+                                    <div class="duration-display">
+                                        {{ getDuration(dateRanges.testing.start, dateRanges.testing.end) }}
+                                    </div>
+                                    <div class="date-range">
+                                        {{ formatDateRangeChart(dateRanges.testing.start, dateRanges.testing.end) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="summary-card simulation-card">
+                                <div class="card-header">
+                                    <div class="card-icon-1 simulation-icon"></div>
+                                    <h5>Simulation Period</h5>
+                                </div>
+                                <div class="card-content">
+                                    <div class="duration-display">
+                                        {{ getDuration(dateRanges.simulation.start, dateRanges.simulation.end) }}
+                                    </div>
+                                    <div class="date-range">
+                                        {{ formatDateRangeChart(dateRanges.simulation.start, dateRanges.simulation.end)
+                                        }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Placeholder -->
+                        <!-- Add this in your timeline/chart section -->
+                        <div class="chart-container1" *ngIf="timelineData && areRangesValid()">
+                            <!-- <div class="chart-header">
+                                <h5>Monthly Data Distribution</h5>
+                                <div class="chart-controls">
+                                    <div class="axis-labels">
+                                        <span class="y-axis-label">Records Count</span>
+                                        <span class="x-axis-label">Time Period</span>
+                                    </div>
+                                </div>
+                            </div> -->
+
+                            <div class="chart-placeholder">
+                                <div class="chart-content">
+                                    <canvas #monthlyChart id="monthlyRecordsChart" width="800" height="400">
+                                    </canvas>
                                 </div>
                             </div>
                         </div>
@@ -401,12 +474,22 @@
                         </div>
 
                         <!-- Feature Importance (XAI) -->
-                        <div class="xai-section" *ngIf="trainingResults.plots.featureImportance">
-                            <h4>Explainable AI - Feature Importance</h4>
-                            <p class="reg">Understanding what drives the model's predictions using SHAP values</p>
-                            <div class="feature-importance-plot">
-                                <img [src]="'data:image/png;base64,' + trainingResults.plots.featureImportance"
-                                    alt="SHAP Feature Importance Plot" class="shap-plot">
+                        <div class="xai-section"
+                            *ngIf="trainingResults.plots.featureImportance || trainingResults.plots.trainingPlot">
+                            <div *ngIf="trainingResults.plots.featureImportance">
+                                <h4>Explainable AI - Feature Importance</h4>
+                                <p class="reg">Understanding what drives the model's predictions using SHAP values</p>
+                                <div class="feature-importance-plot">
+                                    <img [src]="'data:image/png;base64,' + trainingResults.plots.featureImportance"
+                                        alt="SHAP Feature Importance Plot" class="shap-plot">
+                                </div>
+                            </div>
+                            <div *ngIf="trainingResults.plots.trainingPlot">
+                                <p class="reg" style="margin-top: 20px;">Model metrics across epochs</p>
+                                <div class="feature-importance-plot">
+                                    <img [src]="'data:image/png;base64,' + trainingResults.plots.trainingPlot"
+                                        alt="SHAP Feature Importance Plot" class="shap-plot">
+                                </div>
                             </div>
                         </div>
 
@@ -429,6 +512,76 @@
                                 <div class="matrix-cell true-negative">
                                     <div class="cell-value">{{ confusionMatrix.trueNegative }}</div>
                                     <div class="cell-label">True Negative</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confusion Matrix Donut Chart -->
+                        <!-- Confusion Matrix Donut Chart -->
+                        <div class="confusion-donut-section" style="margin-top: 20px;">
+                            <div class="confusion-donut-container">
+                                <!-- Inline SVG for the Donut Chart -->
+                                <svg viewBox="0 0 42 42" class="confusion-donut-chart">
+                                    <!-- Background circle for the track -->
+                                    <circle class="confusion-donut-background" cx="21" cy="21" r="15.91549430918954">
+                                    </circle>
+
+                                    <!-- 1. True Positive Segment (Green) -->
+                                    <circle class="confusion-donut-segment true-positive" cx="21" cy="21"
+                                        r="15.91549430918954"
+                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.truePositive) + ', 100'"
+                                        stroke-dashoffset="0"></circle>
+
+                                    <!-- 2. False Positive Segment (Red) -->
+                                    <circle class="confusion-donut-segment false-positive" cx="21" cy="21"
+                                        r="15.91549430918954"
+                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.falsePositive) + ', 100'"
+                                        [attr.stroke-dashoffset]="-getSegmentPercentage(confusionMatrix.truePositive)">
+                                    </circle>
+
+                                    <!-- 3. False Negative Segment (Yellow) -->
+                                    <circle class="confusion-donut-segment false-negative" cx="21" cy="21"
+                                        r="15.91549430918954"
+                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.falseNegative) + ', 100'"
+                                        [attr.stroke-dashoffset]="-getSegmentPercentage(confusionMatrix.truePositive) - getSegmentPercentage(confusionMatrix.falsePositive)">
+                                    </circle>
+
+                                    <!-- 4. True Negative Segment (Blue) -->
+                                    <circle class="confusion-donut-segment true-negative" cx="21" cy="21"
+                                        r="15.91549430918954"
+                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.trueNegative) + ', 100'"
+                                        [attr.stroke-dashoffset]="-getSegmentPercentage(confusionMatrix.truePositive) - getSegmentPercentage(confusionMatrix.falsePositive) - getSegmentPercentage(confusionMatrix.falseNegative)">
+                                    </circle>
+
+                                    <!-- Text in the middle of the donut -->
+                                    <g class="confusion-donut-text-group">
+                                        <text x="50%" y="55%" class="confusion-donut-number">
+                                            {{ getTotal() | number }}
+                                        </text>
+                                        <text x="50%" y="55%" class="confusion-donut-label">
+                                            Total
+                                        </text>
+                                    </g>
+                                </svg>
+
+                                <!-- Tooltip to show data on hover -->
+                                <div class="confusion-donut-tooltip">
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-color true-positive"></span>
+                                        <span>TP: {{ confusionMatrix.truePositive | number }}</span>
+                                    </div>
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-color false-positive"></span>
+                                        <span>FP: {{ confusionMatrix.falsePositive | number }}</span>
+                                    </div>
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-color false-negative"></span>
+                                        <span>FN: {{ confusionMatrix.falseNegative | number }}</span>
+                                    </div>
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-color true-negative"></span>
+                                        <span>TN: {{ confusionMatrix.trueNegative | number }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -543,6 +696,7 @@
                         <div class="stream-container">
                             <div class="stream-header">
                                 <span>Timestamp</span>
+                                <span>Sample ID</span>
                                 <span>Prediction</span>
                                 <span>Confidence</span>
                                 <span>Status</span>
@@ -551,6 +705,7 @@
                                 <div *ngFor="let prediction of realtimeData.slice().reverse().slice(0, 10)"
                                     class="stream-row" [ngClass]="prediction.prediction">
                                     <span class="timestamp">{{ prediction.timestamp | date:'HH:mm:ss' }}</span>
+                                    <span class="rowIndex">{{ prediction.rowIndex }}</span>
                                     <span class="prediction-value">{{ prediction.prediction | titlecase }}</span>
                                     <span class="confidence">{{ (prediction.confidence * 100) | number:'1.1-2'
                                         }}%</span>
