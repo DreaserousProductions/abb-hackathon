@@ -1,4 +1,4 @@
-<nav class="navigation-bar container">
+<nav class="navigation-bar">
     <!-- Desktop Navigation -->
     <div class="logo" routerLink="/">
         <h3>Predictive Quality Control</h3>
@@ -8,7 +8,7 @@
         <button id="focus-link" routerLink="/upload">PREDICT</button>
     </div>
 
-    <div class="quick-links">
+    <div class="quick-links" (click)="onToggleTheme()">
         <img src="/logo.png" alt="ABB Logo" class="abb-logo">
     </div>
 

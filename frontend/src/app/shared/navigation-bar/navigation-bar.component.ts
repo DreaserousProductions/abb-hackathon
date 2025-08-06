@@ -12,7 +12,7 @@ import { AppTheme, ThemeService } from '../../services/theme/theme.service';
   styleUrl: './navigation-bar.component.css'
 })
 export class NavigationBarComponent implements OnInit, OnDestroy {
-  focusLink: string = 'Login';
+  focusLink: string = 'Legacy';
 
   // NEW: Add a property to track if the menu is open or closed.
   isMenuOpen = false;
@@ -32,6 +32,10 @@ export class NavigationBarComponent implements OnInit, OnDestroy {
     // REMOVED: All document.querySelector and addEventListener calls are gone.
   }
 
+  onToggleTheme() {
+    this.themeService.toggleTheme();
+  }
+
   ngOnDestroy(): void {
     if (this.themeSubscription) {
       this.themeSubscription.unsubscribe();
@@ -43,7 +47,7 @@ export class NavigationBarComponent implements OnInit, OnDestroy {
     this.isMenuOpen = !this.isMenuOpen;
   }
 
-  onLegacyButtonClick(): void {
-    this.themeService.toggleTheme();
+  onToggleDarkMode() {
+    this.themeService.toggleDarkMode();
   }
 }

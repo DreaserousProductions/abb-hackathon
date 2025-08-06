@@ -14,7 +14,7 @@ public class DataController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
     // In a real app, this would come from configuration
-    private const string FastAPI_BaseUrl = "http://ml_service:8000";
+    private const string FastAPI_BaseUrl = "http://localhost:8000";
 
     public DataController(IHttpClientFactory httpClientFactory)
     {
