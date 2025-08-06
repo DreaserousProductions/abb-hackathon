@@ -363,6 +363,7 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
       this.generateConfusionMatrix();
     } catch (error) {
       console.error('Training API call failed:', error);
+      this.errorMessage = "Training API call failed (Ensure you are using the Bosch Production Line Dataset)";
       this.trainingProgress = 0;
     } finally {
       this.isTraining = false;
