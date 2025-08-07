@@ -4,406 +4,354 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hackathon Plan</title>
+    <title>IntelliInspect - Project Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Basic table styling to mimic Excel */
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f8f9fa;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 2rem;
         }
 
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 14px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .header-section {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding: 3rem 0;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            border-radius: 1rem;
+            color: white;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        th,
-        td {
-            border: 1px solid #dee2e6;
-            padding: 12px 15px;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        th {
-            background-color: #e9ecef;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        tr:hover {
-            background-color: #e9ecef;
-        }
-
-        .status-not-started {
-            background-color: #ffcdd2;
-        }
-
-        .status-in-progress {
-            background-color: #fff9c4;
-        }
-
-        .status-completed {
-            background-color: #c8e6c9;
-        }
-
-        .header-day1 {
-            background-color: #d1e7dd;
-        }
-
-        .header-day2 {
-            background-color: #cfe2ff;
-        }
-
-        .header-day3 {
-            background-color: #f8d7da;
-        }
-
-        .participant-fe {
-            background-color: #e3f2fd;
-        }
-
-        .participant-be {
-            background-color: #e8f5e9;
-        }
-
-        .participant-ml {
-            background-color: #fffde7;
-        }
-
-        .participant-devops {
-            background-color: #fbe9e7;
-        }
-
-        .task-details {
-            font-size: 0.9em;
-            color: #495057;
-        }
-
-        .queries {
-            color: #dc3545;
-        }
-
-        .queries span {
-            color: blue;
-        }
-
-        .controls {
+        .header-title {
+            font-size: 4rem;
+            font-weight: 700;
             margin-bottom: 1rem;
-            padding: 1rem;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-subtitle {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .button-group a {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .button-group a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 1rem;
+        }
+
+        .card-description {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .card-button {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .card-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .diagram-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .diagram-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .diagram-image {
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            background: #f8fafc;
+        }
+
+        .download-link {
+            color: #3b82f6;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .download-link:hover {
+            color: #1e40af;
+            text-decoration: underline;
+        }
+
+        .prose {
+            max-width: none;
+        }
+
+        .prose p {
+            margin-bottom: 1rem;
+            color: #4b5563;
+            font-size: 1.125rem;
+        }
+
+        .prose ul {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .prose li {
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+            font-size: 1.125rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 2.5rem;
+            }
+
+            .header-subtitle {
+                font-size: 1.25rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 
 <body>
+    <div class="container">
+        <header class="header-section">
+            <h1 class="header-title">IntelliInspect</h1>
+            <p class="header-subtitle">Real-Time Predictive Quality Control Using Kaggle Production Line Data</p>
+            <div class="button-group">
+                <a href="https://hack.dreaserous.tech" target="_blank" rel="noopener noreferrer">🚀 Live Demo</a>
+                <a href="https://hub.docker.com/repository/docker/dreaserous/abb-hackathon/general" target="_blank"
+                    rel="noopener noreferrer">🐳 Docker Registry</a>
+                <a href="https://github.com/DreaserousProductions/abb-hackathon" target="_blank"
+                    rel="noopener noreferrer">📚
+                    GitHub Repo</a>
+            </div>
+        </header>
 
-    <div class="controls">
-        <h1 class="text-2xl font-bold mb-2">Hackathon Task Tracker</h1>
-        <p class="text-gray-600 mb-4">A detailed plan for Team - 5 (Sentinels).</p>
-        <button onclick="downloadXLS()"
-            class="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700">Download as XLS</button>
+        <section class="mb-16">
+            <h2 class="section-title">Project Overview</h2>
+            <div class="card">
+                <div class="card-content">
+                    <div class="prose">
+                        <p>IntelliInspect is a comprehensive AI-powered web application that enables real-time
+                            predictive quality control using Kaggle production line sensor data. The system features an
+                            intuitive step-based workflow with seamless file uploads, advanced machine learning model
+                            training, and live prediction streaming.</p>
+                        <p>The platform supports large-scale data handling with up to 2.5GB CSV uploads via chunked
+                            transfers, sophisticated date range segmentation, and fully containerized deployment using
+                            Docker.</p>
+                        <p><strong>Key functionalities include:</strong></p>
+                        <ul>
+                            <li>CSV file upload with real-time progress and validation</li>
+                            <li>Date range configuration and validation against the dataset</li>
+                            <li>XGBoost model training with comprehensive performance metrics</li>
+                            <li>Real-time simulation and prediction streaming via WebSockets</li>
+                            <li>JWT-based authentication and role management</li>
+                            <li>Professional containerized deployment with Docker Compose</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="section-title">Key Documents</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="card-title">📋 Software Design Document</h3>
+                        <p class="card-description">Comprehensive system design specification including architecture
+                            decisions, component relationships, and technical trade-offs in PDF format.</p>
+                        <a href="docs/SDD/SDD.pdf" target="_blank" rel="noopener noreferrer" class="card-button">View
+                            Document</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="card-title">🔗 API Contract</h3>
+                        <p class="card-description">Complete API documentation with detailed request/response formats,
+                            endpoint specifications, and interactive examples.</p>
+                        <a href="docs/API Contract/API_Contract.html" target="_blank" rel="noopener noreferrer"
+                            class="card-button">View Documentation</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <h3 class="card-title">📅 Project Timeline</h3>
+                        <p class="card-description">Detailed project milestones, development phases, and deliverable
+                            schedule with progress tracking.</p>
+                        <a href="/docs/project_timeline.html" target="_blank" rel="noopener noreferrer"
+                            class="card-button">View Timeline</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="section-title">System Diagrams</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="diagram-card">
+                    <div class="card-content">
+                        <h3 class="card-title">🏗️ Software Architecture Diagram</h3>
+                        <p class="card-description mb-4">Three-tier architecture showcasing Angular frontend, .NET
+                            backend, and Python ML service with Docker orchestration.</p>
+                    </div>
+                    <a href="docs/Diagrams/SAD.html" target="_blank" rel="noopener noreferrer">
+                        <img src="docs/Diagrams/Software Architecture Diagram.png" alt="Software Architecture Diagram"
+                            class="diagram-image" />
+                    </a>
+                </div>
+
+                <div class="diagram-card">
+                    <div class="card-content">
+                        <h3 class="card-title">🔄 Data Flow Diagram</h3>
+                        <p class="card-description mb-4">Complete data journey from CSV upload through model training to
+                            real-time prediction streaming.</p>
+                    </div>
+                    <img src="docs/Diagrams/Data Flow Diagram.png" alt="Data Flow Diagram" class="diagram-image" />
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="section-title">Sample Data</h2>
+            <div class="card">
+                <div class="card-content">
+                    <h3 class="card-title">📊 Kaggle Production Line Datasets</h3>
+                    <p class="card-description">Pre-processed sample datasets for testing and demonstration purposes.
+                        These files contain synthetic timestamps and are ready for immediate use with the application.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <span class="font-medium text-gray-700">100,000 Records Dataset</span>
+                            <a href="data/first_100k.csv" download class="download-link">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                Download CSV
+                            </a>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <span class="font-medium text-gray-700">10,000 Records Dataset</span>
+                            <a href="data/first_10k.csv" download class="download-link">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                Download CSV
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center py-8 border-t border-gray-200 mt-16">
+            <p class="text-gray-600">
+                Built with ❤️ by Team Sentinels for the ABB Hackathon 2025
+            </p>
+            <p class="text-sm text-gray-500 mt-2">
+                Angular 18+ • ASP.NET Core 8 • Python 3.13 • FastAPI • XGBoost • Docker
+            </p>
+        </footer>
     </div>
-
-    <table id="hackathon-table">
-        <thead>
-            <tr>
-                <th>Day</th>
-                <th>Time Slot</th>
-                <th>Participant (Role)</th>
-                <th>Assigned Task</th>
-                <th>Assignee</th>
-                <th>Task Details & Goals</th>
-                <th>Status</th>
-                <th>Queries</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- DAY 1 -->
-            <tr class="header-day1">
-                <td colspan="8"><strong>Day 1: Foundation & Core Data Pipeline</strong></td>
-            </tr>
-            <tr>
-                <td rowspan="4">1</td>
-                <td rowspan="4">Morning</td>
-                <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
-                <td><strong>Screen 1 UI: Upload Component</strong></td>
-                <td><strong>Naghul</strong></td>
-                <td class="task-details">Create Angular component for file upload. Implement drag-and-drop UI, file type
-                    validation (.csv), and loading indicators. Build the 'Post-upload Info Summary Card'.</td>
-                <td class="status-completed">Completed</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-be"><strong>P2 (Backend)</strong></td>
-                <td><strong>API Endpoint: /api/data/upload</strong></td>
-                <td><strong>Naghul</strong></td>
-                <td class="task-details">Create .NET endpoint. Receive `IFormFile`, act as orchestrator by forwarding
-                    the file to the ML service. Await metadata response and pass it back to the frontend.</td>
-                <td class="status-completed">Completed</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-ml"><strong>P3 (ML)</strong></td>
-                <td><strong>ML Endpoint: /process-csv</strong></td>
-                <td><strong>Ragavi & Mahalakshmi</strong></td>
-                <td class="task-details">Create FastAPI endpoint. Use `pandas` to parse CSV, add `synthetic_timestamp`
-                    column. Calculate metadata (records, columns, pass rate, date range). Persist processed data
-                    (Parquet). Return metadata JSON.</td>
-                <td class="status-completed">Completed</td>
-                <td class="queries">What storage method to use?<br><span>Suggesting Parquet</span></td>
-            </tr>
-            <tr>
-                <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
-                <td><strong>Project Scaffolding & Docker Setup</strong></td>
-                <td><strong>All Members</strong></td>
-                <td class="task-details">Initialize Git repo. Create monorepo structure. Create initial `Dockerfile` for
-                    all 3 services and the `docker-compose.yaml` file. Ensure services can communicate via service
-                    names.</td>
-                <td class="status-completed">Complete</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td rowspan="4">1</td>
-                <td rowspan="4">Afternoon</td>
-                <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
-                <td><strong>Screen 2 UI: Date Ranges & Visualization</strong></td>
-                <td><strong>Naghul & Harsha</strong></td>
-                <td class="task-details">Build the 'Date Ranges' component with calendar pickers. Implement 'Validate
-                    Ranges' button logic. On API success, display summary cards and render `ngx-charts` timeline.</td>
-                <td class="status-completed">Completed</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-be"><strong>P2 (Backend)</strong></td>
-                <td><strong>API Endpoint: /api/data/validate-ranges</strong></td>
-                <td><strong>Naghul</strong></td>
-                <td class="task-details">Create .NET endpoint to proxy date range validation requests from Angular to
-                    the Python service. Return the rich validation data to the frontend.</td>
-                <td class="status-completed">Completed</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-ml"><strong>P3 (ML)</strong></td>
-                <td><strong>ML Endpoint: /validate-ranges</strong></td>
-                <td><strong>Ragavi & Mahalakshmi</strong></td>
-                <td class="task-details">Create FastAPI endpoint. Load processed data. Implement validation logic
-                    (sequential, no overlap). Calculate record counts for each range and monthly aggregations for the
-                    timeline chart.</td>
-                <td class="status-completed">Completed</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
-                <td><strong>Integration Testing & Documentation Start</strong></td>
-                <td><strong>All Members</strong></td>
-                <td class="task-details">Run `docker-compose up --build` and test the full Screen 1 flow. Troubleshoot
-                    any networking issues. Start the `README.md` and create the initial System Architecture diagram.
-                </td>
-                <td class="status-in-progress">In Progress</td>
-                <td class="queries"></td>
-            </tr>
-
-            <!-- DAY 2 -->
-            <tr class="header-day2">
-                <td colspan="7"><strong>Day 2: The Intelligence Engine & Explainable AI (XAI)</strong></td>
-            </tr>
-            <tr>
-                <td rowspan="4">2</td>
-                <td rowspan="4">Morning</td>
-                <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
-                <td><strong>Screen 3 UI: Train Screen</strong></td>
-                <td><strong>Naghul & Harsha</strong></td>
-                <td class="task-details">Build the basic UI for Screen 3. Add the 'Train Model' button and implement
-                    loading state management (e.g., show spinner on click).</td>
-                <td class="status-completed">Complete</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-be"><strong>P2 (Backend)</strong></td>
-                <td><strong>API Endpoint: /api/model/train</strong></td>
-                <td><strong>Naghul</strong></td>
-                <td class="task-details">Create the pass-through .NET endpoint for model training. Ensure it handles
-                    asynchronous, long-running requests gracefully.</td>
-                <td class="status-completed">Complete</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-ml"><strong>P3 (ML)</strong></td>
-                <td><strong>ML Endpoint: /api/model/train (Core)</strong></td>
-                <td><strong>Ragavi & Mahalakshmi</strong></td>
-                <td class="task-details">Implement core training logic. Load data, filter by date ranges. Train XGBoost
-                    model. Evaluate performance (Accuracy, Precision, etc.). Save the trained model artifact.</td>
-                <td class="status-in-progress">In Progress</td>
-                <td class="queries">Which subset of numeric features should be prioritized?</td>
-            </tr>
-            <tr>
-                <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
-                <td><strong>Refine Dockerfiles & Data Flow Diagram</strong></td>
-                <td><strong>All Members</strong></td>
-                <td class="task-details">Optimize Dockerfiles with multi-stage builds. Create the detailed Data Flow
-                    (Sequence) diagram for the "Train Model" user journey.</td>
-                <td class="status-not-started">Not Started</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td rowspan="4">2</td>
-                <td rowspan="4">Afternoon</td>
-                <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
-                <td><strong>Screen 3 UI: Final Visualization</strong></td>
-                <td><strong>Naghul & Harsha</strong></td>
-                <td class="task-details">On API success, populate performance metric cards. Render charts. Display the
-                    Base64 SHAP plot image received from the API.</td>
-                <td class="status-completed">Complete</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-be"><strong>P2 (Backend)</strong></td>
-                <td><strong>Task: Support XAI Data</strong></td>
-                <td><strong>Naghul</strong></td>
-                <td class="task-details">Ensure the DTOs (Data Transfer Objects) between the backend and frontend can
-                    handle the Base64 string for the SHAP plot without issues.</td>
-                <td class="status-completed">Complete</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-ml"><strong>P3 (ML)</strong></td>
-                <td><strong>XAI Integration: SHAP Plot Generation</strong></td>
-                <td><strong>Ragavi & Mahalakshmi</strong></td>
-                <td class="task-details">Enhance the `/train` endpoint. After training, use `shap` to calculate feature
-                    importance. Generate a summary plot, save to an in-memory buffer, and encode as a Base64 string in
-                    the API response.</td>
-                <td class="status-completed">Complete</td>
-                <td class="queries">
-                </td>
-            </tr>
-            <tr>
-                <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
-                <td><strong>End-to-End Testing (Screen 1-3)</strong></td>
-                <td><strong>All Members</strong></td>
-                <td class="task-details">Perform a full user journey test: Upload -> Configure -> Train. Verify all data
-                    and visualizations appear correctly. Document any bugs found.</td>
-                <td class="status-not-started">Not Started</td>
-                <td class="queries"></td>
-            </tr>
-
-            <!-- DAY 3 -->
-            <tr class="header-day3">
-                <td colspan="7"><strong>Day 3: Real-Time Simulation & Final Delivery</strong></td>
-            </tr>
-            <tr>
-                <td rowspan="4">3</td>
-                <td rowspan="4">Morning</td>
-                <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
-                <td><strong>SignalR Service & Screen 4 UI Setup</strong></td>
-                <td><strong>Naghul & Harsha</strong></td>
-                <td class="task-details">Install `@microsoft/signalr`. Create an Angular service to manage the WebSocket
-                    connection. Build the static layout for the Simulation screen (Screen 4).</td>
-                <td class="status-in-progress">In Progress</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-be"><strong>P2 (Backend)</strong></td>
-                <td><strong>SignalR Hub & Simulation Service</strong></td>
-                <td><strong>Naghul</strong></td>
-                <td class="task-details">Implement `SimulationHub` with SignalR. Create the background service with a
-                    producer-consumer pattern to read data, call the ML service for predictions, and broadcast results
-                    via the hub.</td>
-                <td class="status-completed">Complete</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-ml"><strong>P3 (ML)</strong></td>
-                <td><strong>ML Endpoint: /simulation-ws</strong></td>
-                <td><strong>Ragavi & Mahalakshmi</strong></td>
-                <td class="task-details">Create a low-latency websockt for simulation. Load the model into
-                    memory on application startup to avoid reload overhead.</td>
-                <td class="status-completed">Complete</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
-                <td><strong>Finalize Design Document</strong></td>
-                <td><strong>All Members</strong></td>
-                <td class="task-details">Complete the `Design Document.pdf`. Embed the finalized architecture and data
-                    flow diagrams. Write concise descriptions for all design choices and the API contract.</td>
-                <td class="status-not-started">Not Started</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td rowspan="4">3</td>
-                <td rowspan="4">Afternoon</td>
-                <td class="participant-fe"><strong>P1 (Frontend)</strong></td>
-                <td><strong>Live Simulation Dashboard</strong></td>
-                <td><strong>Naghul & Harsha</strong></td>
-                <td class="task-details">Connect the Screen 4 component to the SignalR service. As data streams in,
-                    update all UI elements in real-time: stats, charts, and the live prediction table.</td>
-                <td class="status-in-progress">In Progress</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-be"><strong>P2 (Backend)</strong></td>
-                <td><strong>Integration & Stress Testing</strong></td>
-                <td><strong>Naghul</strong></td>
-                <td class="task-details">Work with Frontend and ML leads to ensure the entire simulation pipeline is
-                    robust. Test for dropped connections and error handling.</td>
-                <td class="status-in-progress">In Progress</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-ml"><strong>P3 (ML)</strong></td>
-                <td><strong>Model & Code Cleanup</strong></td>
-                <td><strong>Ragavi & Mahalakshmi</strong></td>
-                <td class="task-details">Review all Python code for clarity and comments. Ensure the model artifact is
-                    saved and loaded correctly. Finalize feature selection logic.</td>
-                <td class="status-in-progress">In Progress</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td class="participant-devops"><strong>P4 (DevOps/Docs)</strong></td>
-                <td><strong>Finalize README & Demo Video Script</strong></td>
-                <td><strong>All Members</strong></td>
-                <td class="task-details">Write the final, comprehensive `README.md` with foolproof deployment
-                    instructions. Write the detailed script and shot list for the 3-minute demo video.</td>
-                <td class="status-not-started">Not Started</td>
-                <td class="queries"></td>
-            </tr>
-            <tr>
-                <td rowspan="4">3</td>
-                <td rowspan="4">Evening</td>
-                <td colspan="1"><strong>All Hands on Deck</strong></td>
-                <td><strong>Demo Video Recording & Final Submission</strong></td>
-                <td><strong>All Members</strong></td>
-                <td class="task-details">Record the screen capture for the demo video (P1). Record the voiceover (P4).
-                    Edit the video (P2). Final code review and merge to main (P3). Zip and submit all artifacts.</td>
-                <td class="status-not-started">Not Started</td>
-                <td class="queries"></td>
-            </tr>
-        </tbody>
-    </table>
-
-    <script>
-        function downloadXLS() {
-            const table = document.getElementById('hackathon-table');
-            const html = table.outerHTML;
-            const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
-            const link = document.createElement('a');
-            link.download = 'IntelliInspect_Hackathon_Plan.xls';
-            link.href = url;
-            link.click();
-        }
-    </script>
 </body>
 
 </html>
