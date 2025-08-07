@@ -611,7 +611,7 @@
 
 @media only screen and (max-width: 810px) {
     .container {
-        padding: 70px;
+        padding-top: 80px;
     }
 
     .dashboard-header {
