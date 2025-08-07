@@ -4420,28 +4420,45 @@
 
 /* Styles for the SVG chart - bigger size */
 .confusion-donut-chart {
-    width: 200px;
-    height: 200px;
+    width: 220px;
+    height: 220px;
     max-width: 100%;
     transform: rotate(-90deg);
     /* Start the chart from the top */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .confusion-donut-background {
     fill: transparent;
     stroke: #e9ecef;
     /* A light grey background for the track */
-    stroke-width: 8;
+    stroke-width: 10;
     /* Thicker track */
 }
 
 .confusion-donut-segment {
     fill: transparent;
-    stroke-width: 8;
+    stroke-width: 10;
     /* Thicker segments */
     stroke-linecap: butt;
     /* Flat edges */
-    transition: stroke-dasharray 0.5s ease-in-out, stroke-dashoffset 0.5s ease-in-out;
+    animation: donut-fill 1s ease-in-out forwards;
+}
+
+@keyframes donut-fill {
+    from {
+        stroke-dasharray: 0, 100;
+    }
 }
 
 /* Color mapping for the chart segments */
@@ -4498,17 +4515,18 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.75);
+    background-color: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 0.75rem;
+    padding: 0.75rem 1rem;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     pointer-events: none;
     transition: opacity 0.2s ease-in-out;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     z-index: 10;
+    backdrop-filter: blur(5px);
 }
 
 .confusion-donut-container:hover .confusion-donut-tooltip {
@@ -4518,13 +4536,13 @@
 .tooltip-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .tooltip-color {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
     flex-shrink: 0;
 }
 

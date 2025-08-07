@@ -39,14 +39,34 @@
                         </div>
 
                         <!-- Loading State -->
-                        <div class="loading-state" *ngIf="isUploading">
+                        <!-- <div class="loading-state" *ngIf="isUploading">
                             <div class="spinner"></div>
-                            <!-- <div class="progress-bar-training">
+                            <div class="progress-bar-training">
                                 <div class="progress-fill" [style.width.%]="uploadProgress"></div>
-                            </div> -->
+                            </div>
                             <h4>Processing your dataset...</h4>
                             <p class="reg">Please wait while we analyze your data</p>
+                        </div> -->
+                        <div class="loading-state" *ngIf="isUploading">
+
+                            <!-- UPLOADING VIEW: Shown when uploadProgress is less than 100 -->
+                            <ng-container *ngIf="uploadProgress < 100">
+                                <div class="progress-bar-training">
+                                    <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+                                </div>
+                                <h4>Your file is uploading...</h4>
+                                <p class="reg">Please wait a moment</p>
+                            </ng-container>
+
+                            <!-- PROCESSING VIEW: Shown only when uploadProgress reaches 100 -->
+                            <ng-container *ngIf="uploadProgress === 100">
+                                <div class="spinner"></div>
+                                <h4>Processing your dataset...</h4>
+                                <p class="reg">Please wait while we analyze your data</p>
+                            </ng-container>
+
                         </div>
+
 
                         <!-- File Selected State -->
                         <div class="file-selected" *ngIf="selectedFile && !isUploading">
@@ -519,7 +539,10 @@
 
                         <!-- Confusion Matrix Donut Chart -->
                         <!-- Confusion Matrix Donut Chart -->
+                        <!-- Confusion Matrix Donut Chart -->
                         <div class="confusion-donut-section" style="margin-top: 20px;">
+                            <h4>Confusion Chart</h4>
+                            <!-- Confusion Matrix Donut Chart -->
                             <div class="confusion-donut-container">
                                 <!-- Inline SVG for the Donut Chart -->
                                 <svg viewBox="0 0 42 42" class="confusion-donut-chart">
@@ -530,36 +553,36 @@
                                     <!-- 1. True Positive Segment (Green) -->
                                     <circle class="confusion-donut-segment true-positive" cx="21" cy="21"
                                         r="15.91549430918954"
-                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.truePositive) + ', 100'"
+                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.truePositive, true) + ', 100'"
                                         stroke-dashoffset="0"></circle>
 
                                     <!-- 2. False Positive Segment (Red) -->
                                     <circle class="confusion-donut-segment false-positive" cx="21" cy="21"
                                         r="15.91549430918954"
-                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.falsePositive) + ', 100'"
-                                        [attr.stroke-dashoffset]="-getSegmentPercentage(confusionMatrix.truePositive)">
+                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.falsePositive, true) + ', 100'"
+                                        [attr.stroke-dashoffset]="-getSegmentOffset(confusionMatrix.truePositive)">
                                     </circle>
 
                                     <!-- 3. False Negative Segment (Yellow) -->
                                     <circle class="confusion-donut-segment false-negative" cx="21" cy="21"
                                         r="15.91549430918954"
-                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.falseNegative) + ', 100'"
-                                        [attr.stroke-dashoffset]="-getSegmentPercentage(confusionMatrix.truePositive) - getSegmentPercentage(confusionMatrix.falsePositive)">
+                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.falseNegative, true) + ', 100'"
+                                        [attr.stroke-dashoffset]="-getSegmentOffset(confusionMatrix.truePositive) - getSegmentOffset(confusionMatrix.falsePositive)">
                                     </circle>
 
                                     <!-- 4. True Negative Segment (Blue) -->
                                     <circle class="confusion-donut-segment true-negative" cx="21" cy="21"
                                         r="15.91549430918954"
-                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.trueNegative) + ', 100'"
-                                        [attr.stroke-dashoffset]="-getSegmentPercentage(confusionMatrix.truePositive) - getSegmentPercentage(confusionMatrix.falsePositive) - getSegmentPercentage(confusionMatrix.falseNegative)">
+                                        [attr.stroke-dasharray]="getSegmentPercentage(confusionMatrix.trueNegative, true) + ', 100'"
+                                        [attr.stroke-dashoffset]="-getSegmentOffset(confusionMatrix.truePositive) - getSegmentOffset(confusionMatrix.falsePositive) - getSegmentOffset(confusionMatrix.falseNegative)">
                                     </circle>
 
                                     <!-- Text in the middle of the donut -->
                                     <g class="confusion-donut-text-group">
-                                        <text x="50%" y="55%" class="confusion-donut-number">
+                                        <text x="50%" y="50%" class="confusion-donut-number">
                                             {{ getTotal() | number }}
                                         </text>
-                                        <text x="50%" y="55%" class="confusion-donut-label">
+                                        <text x="50%" y="50%" class="confusion-donut-label">
                                             Total
                                         </text>
                                     </g>

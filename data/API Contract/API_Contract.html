@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Contract Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgb(243 244 246);
+            padding-left: 1rem;
+        }
+        
+        .sidebar-link.active {
+            background-color: rgb(59 130 246);
+            color: white;
+            padding-left: 1rem;
+        }
+        
+        .endpoint-card {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .endpoint-header {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .endpoint-header:hover {
+            background-color: rgb(249 250 251);
+        }
+        
+        .method-badge {
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            text-transform: uppercase;
+        }
+        
+        .method-post {
+            background-color: rgb(34 197 94);
+            color: white;
+        }
+        
+        .method-get {
+            background-color: rgb(59 130 246);
+            color: white;
+        }
+        
+        .method-websocket {
+            background-color: rgb(168 85 247);
+            color: white;
+        }
+        
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: rgb(55 65 81);
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .copy-button:hover {
+            background-color: rgb(75 85 99);
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background-color: rgb(220 252 231);
+            color: rgb(22 101 52);
+        }
+        
+        .status-error {
+            background-color: rgb(254 226 226);
+            color: rgb(153 27 27);
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .content-section {
+            scroll-margin-top: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <div class="w-80 bg-white shadow-lg fixed h-full overflow-y-auto">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">API Documentation</h1>
+                
+                <nav class="space-y-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Frontend to Backend</h2>
+                        <div class="space-y-2">
+                            <div class="ml-2">
+                                <p class="font-medium text-gray-700 mb-2">Authentication (/api/Auth)</p>
+                                <div class="ml-4 space-y-1">
+                                    <a href="#auth-login" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /login</a>
+                                    <a href="#auth-verify" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">GET /verify</a>
+                                </div>
+                            </div>
+                            
+                            <div class="ml-2">
+                                <p class="font-medium text-gray-700 mb-2">Data (/api/Data)</p>
+                                <div class="ml-4 space-y-1">
+                                    <a href="#data-upload" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /upload</a>
+                                    <a href="#data-upload-chunk" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /upload-chunk</a>
+                                    <a href="#data-finish-upload" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /finish-upload</a>
+                                    <a href="#data-validate-ranges" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /validate-ranges</a>
+                                </div>
+                            </div>
+                            
+                            <div class="ml-2">
+                                <p class="font-medium text-gray-700 mb-2">Model (/api/Model)</p>
+                                <div class="ml-4 space-y-1">
+                                    <a href="#model-train" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /train</a>
+                                    <a href="#model-simulation-ws" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">WebSocket /simulation-ws</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Backend to ML Service</h2>
+                        <div class="space-y-2">
+                            <div class="ml-2">
+                                <p class="font-medium text-gray-700 mb-2">CSV Processor (/csv)</p>
+                                <div class="ml-4 space-y-1">
+                                    <a href="#csv-upload-chunk" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /upload-chunk</a>
+                                    <a href="#csv-finish-upload" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /finish-upload</a>
+                                    <a href="#csv-validate-ranges" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /validate-ranges</a>
+                                    <a href="#csv-train" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">POST /train</a>
+                                    <a href="#csv-simulation-ws" class="sidebar-link block py-1 px-2 text-sm text-gray-600 rounded">WebSocket /simulation-ws</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-80 flex-1 p-8">
+            <div class="max-w-4xl mx-auto">
+                <header class="mb-8">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-4">API Contract Documentation</h1>
+                    <p class="text-lg text-gray-600">Complete API reference for the three-tier application</p>
+                </header>
+
+                <!-- Frontend to Backend API Communication -->
+                <section class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Frontend to Backend API Communication</h2>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <p class="text-blue-800"><strong>Base URL:</strong> <code class="bg-blue-100 px-2 py-1 rounded">{environment.apiUrl}</code> (typically <code class="bg-blue-100 px-2 py-1 rounded">/api</code>, Base URL Configured with Nginx)</p>
+                    </div>
+
+                    <!-- Authentication Controller -->
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Authentication Controller (/api/Auth)</h3>
+
+                        <!-- POST /login -->
+                        <div id="auth-login" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('auth-login-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/api/Auth/login</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="auth-login-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="auth-login-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Authenticate user credentials and return JWT token.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "username": "string",
+  "password": "string"
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "token": "string",
+  "username": "string"
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">401 Unauthorized</span></p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>"Invalid credentials."</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GET /verify -->
+                        <div id="auth-verify" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('auth-verify-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-get">GET</span>
+                                        <span class="font-mono text-lg">/api/Auth/verify</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="auth-verify-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="auth-verify-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Verify JWT token and return user role information.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Headers</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>Authorization: Bearer {token}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "message": "Success",
+  "role": "string"
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">401 Unauthorized</span> Token invalid or missing</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Controller -->
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Data Controller (/api/Data)</h3>
+
+                        <!-- POST /upload -->
+                        <div id="data-upload" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('data-upload-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/api/Data/upload</span>
+                                        <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">Legacy</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="data-upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="data-upload-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Legacy single file upload endpoint (commented out in current implementation).</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Headers</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>Authorization: Bearer {token}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body (multipart/form-data)</h4>
+                                        <div class="bg-gray-50 p-3 rounded">
+                                            <p class="text-sm text-gray-700">• <code>File</code>: IFormFile</p>
+                                            <p class="text-sm text-gray-700">• <code>UserId</code>: string</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "datasetId": "string",
+  "userId": "string", 
+  "parquetPath": "string",
+  "totalRecords": 0,
+  "numColumns": 0,
+  "passRate": 0.0,
+  "dateRange": {
+    "start": "string",
+    "end": "string"
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">400 Bad Request</span> "No file uploaded." or "User ID is required."</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> Processing failure</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POST /upload-chunk -->
+                        <div id="data-upload-chunk" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('data-upload-chunk-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/api/Data/upload-chunk</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="data-upload-chunk-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="data-upload-chunk-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Upload individual file chunk as part of chunked upload process.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Headers</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>Authorization: Bearer {token}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body (multipart/form-data)</h4>
+                                        <div class="bg-gray-50 p-3 rounded">
+                                            <p class="text-sm text-gray-700">• <code>file</code>: IFormFile (chunk data)</p>
+                                            <p class="text-sm text-gray-700">• <code>uploadId</code>: string</p>
+                                            <p class="text-sm text-gray-700">• <code>chunkIndex</code>: string (numeric)</p>
+                                            <p class="text-sm text-gray-700">• <code>userId</code>: string</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> Chunk upload failed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POST /finish-upload -->
+                        <div id="data-finish-upload" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('data-finish-upload-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/api/Data/finish-upload</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="data-finish-upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="data-finish-upload-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Finalize chunked upload by reassembling chunks and processing the complete file.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Headers</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>Authorization: Bearer {token}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "uploadId": "string",
+  "fileName": "string", 
+  "userId": "string",
+  "totalChunks": 0
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "datasetId": "string",
+  "userId": "string",
+  "parquetPath": "string", 
+  "totalRecords": 0,
+  "numColumns": 0,
+  "passRate": 0.0,
+  "dateRange": {
+    "start": "string",
+    "end": "string"
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> File processing failure</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POST /validate-ranges -->
+                        <div id="data-validate-ranges" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('data-validate-ranges-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/api/Data/validate-ranges</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="data-validate-ranges-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="data-validate-ranges-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Validate date ranges against stored dataset and return record counts.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Headers</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>Authorization: Bearer {token}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "userId": "string",
+  "datasetId": "string",
+  "dateRanges": {
+    "training": {
+      "start": "string",
+      "end": "string"
+    },
+    "testing": {
+      "start": "string", 
+      "end": "string"
+    },
+    "simulation": {
+      "start": "string",
+      "end": "string"
+    }
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "status": "Valid",
+  "training": {
+    "count": 0
+  },
+  "testing": {
+    "count": 0
+  },
+  "simulation": {
+    "count": 0
+  },
+  "monthlyCounts": {
+    "2023-01": 0,
+    "2023-02": 0
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">400 Bad Request</span> Invalid date ranges</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">404 Not Found</span> Dataset not found</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> Validation failure</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Controller -->
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Model Controller (/api/Model)</h3>
+
+                        <!-- POST /train -->
+                        <div id="model-train" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('model-train-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/api/Model/train</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="model-train-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="model-train-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Train XGBoost model using specified date ranges and return performance metrics and plots.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Headers</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>Authorization: Bearer {token}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "userId": "string",
+  "datasetId": "string", 
+  "dateRanges": {
+    "training": {
+      "start": "string",
+      "end": "string"
+    },
+    "testing": {
+      "start": "string",
+      "end": "string" 
+    },
+    "simulation": {
+      "start": "string",
+      "end": "string"
+    }
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "metrics": {
+    "accuracy": 0.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1Score": 0.0,
+    "truePositive": 0,
+    "falsePositive": 0,
+    "trueNegative": 0,
+    "falseNegative": 0
+  },
+  "plots": {
+    "featureImportance": "string",
+    "trainingPlot": "string"
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">400 Bad Request</span> "UserId and DatasetId are required." or missing required date ranges</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> Training service failure</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- WebSocket /simulation-ws -->
+                        <div id="model-simulation-ws" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('model-simulation-ws-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-websocket">WebSocket</span>
+                                        <span class="font-mono text-lg">/api/Model/simulation-ws</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="model-simulation-ws-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="model-simulation-ws-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">WebSocket endpoint for real-time ML model simulation streaming. Proxies connections to FastAPI simulation service.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Protocol</h4>
+                                        <p class="text-gray-600">WebSocket (<code>ws://</code> or <code>wss://</code>)</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Connection Messages</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Start Simulation:</p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>{
+  "action": "start",
+  "userId": "string", 
+  "datasetId": "string"
+}</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Stop Simulation:</p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>{
+  "action": "stop",
+  "userId": "string",
+  "datasetId": "string"
+}</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Server Messages</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Simulation Result:</p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>{
+  "rowIndex": 0,
+  "prediction": 0,
+  "confidence": 0.0,
+  "actual": 0,
+  "isCorrect": true,
+  "timestamp": "string"
+}</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Status Messages:</p>
+                                                <div class="space-y-2">
+                                                    <div class="code-block">
+                                                        <pre class="language-json"><code>{"status": "stopped"}</code></pre>
+                                                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                    </div>
+                                                    <div class="code-block">
+                                                        <pre class="language-json"><code>{"status": "finished"}</code></pre>
+                                                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                    </div>
+                                                    <div class="code-block">
+                                                        <pre class="language-json"><code>{"status": "stopping"}</code></pre>
+                                                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Error Messages:</p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>{"error": "string"}</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Backend to ML Service Communication -->
+                <section class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Backend to ML Service Communication</h2>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <p class="text-green-800"><strong>Base URL:</strong> <code class="bg-green-100 px-2 py-1 rounded">http://localhost:8000</code> (Development) / <code class="bg-green-100 px-2 py-1 rounded">http://ml_service:8000</code> (Production)</p>
+                    </div>
+
+                    <!-- CSV Processor Router -->
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">CSV Processor Router (/csv)</h3>
+
+                        <!-- POST /upload-chunk -->
+                        <div id="csv-upload-chunk" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('csv-upload-chunk-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/csv/upload-chunk</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="csv-upload-chunk-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="csv-upload-chunk-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Receive and store individual file chunk in temporary directory.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body (multipart/form-data)</h4>
+                                        <div class="bg-gray-50 p-3 rounded">
+                                            <p class="text-sm text-gray-700">• <code>file</code>: UploadFile (chunk data)</p>
+                                            <p class="text-sm text-gray-700">• <code>uploadId</code>: string (form field)</p>
+                                            <p class="text-sm text-gray-700">• <code>chunkIndex</code>: integer (form field)</p>
+                                            <p class="text-sm text-gray-700">• <code>userId</code>: string (form field)</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "status": "chunk uploaded",
+  "chunkIndex": 0
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> "Could not save chunk {chunkIndex}."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POST /finish-upload -->
+                        <div id="csv-finish-upload" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('csv-finish-upload-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/csv/finish-upload</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="csv-finish-upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="csv-finish-upload-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Reassemble uploaded chunks into complete file and process it to Parquet format.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "uploadId": "string",
+  "fileName": "string",
+  "userId": "string", 
+  "totalChunks": 0
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "datasetId": "string",
+  "userId": "string",
+  "parquetPath": "string",
+  "totalRecords": 0,
+  "numColumns": 0,
+  "passRate": 0.0,
+  "dateRange": {
+    "start": "string", 
+    "end": "string"
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">400 Bad Request</span> "Upload failed: Missing chunk {i}."</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">404 Not Found</span> "Upload ID not found."</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> "An internal error occurred during file processing."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POST /validate-ranges -->
+                        <div id="csv-validate-ranges" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('csv-validate-ranges-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/csv/validate-ranges</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="csv-validate-ranges-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="csv-validate-ranges-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Validate date ranges against stored dataset and return record counts for training, testing, and simulation periods.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "userId": "string",
+  "datasetId": "string",
+  "dateRanges": {
+    "training": {
+      "start": "string",
+      "end": "string"
+    },
+    "testing": {
+      "start": "string",
+      "end": "string" 
+    },
+    "simulation": {
+      "start": "string",
+      "end": "string"
+    }
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "status": "Valid",
+  "training": {
+    "count": 0
+  },
+  "testing": {
+    "count": 0
+  },
+  "simulation": {
+    "count": 0
+  },
+  "monthlyCounts": {
+    "2023-01": 0,
+    "2023-02": 0
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">400 Bad Request</span></p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>{
+  "status": "Invalid", 
+  "detail": "string"
+}</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">404 Not Found</span> Dataset not found (ValueError)</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> "An internal server error occurred."</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POST /train -->
+                        <div id="csv-train" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('csv-train-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-post">POST</span>
+                                        <span class="font-mono text-lg">/csv/train</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="csv-train-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="csv-train-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Train XGBoost model using specified date ranges and return detailed performance metrics and visualization plots.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Request Body</h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "userId": "string",
+  "datasetId": "string",
+  "dateRanges": {
+    "training": {
+      "start": "string",
+      "end": "string" 
+    },
+    "testing": {
+      "start": "string",
+      "end": "string"
+    },
+    "simulation": {
+      "start": "string", 
+      "end": "string"
+    }
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Success Response <span class="status-badge status-success">200 OK</span></h4>
+                                        <div class="code-block">
+                                            <pre class="language-json"><code>{
+  "metrics": {
+    "accuracy": 0.0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1Score": 0.0,
+    "trueNegative": 0,
+    "falsePositive": 0, 
+    "falseNegative": 0,
+    "truePositive": 0
+  },
+  "plots": {
+    "featureImportance": "string",
+    "trainingPlot": "string"
+  }
+}</code></pre>
+                                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Error Responses</h4>
+                                        <div class="space-y-3">
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">400 Bad Request</span> "Request must include 'training', 'testing', and 'simulation' date ranges." or ValueError from service</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600 mb-1"><span class="status-badge status-error">500 Internal Server Error</span> "An internal server error occurred: {error}"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- WebSocket /simulation-ws -->
+                        <div id="csv-simulation-ws" class="content-section endpoint-card bg-white rounded-lg shadow-md mb-4">
+                            <div class="endpoint-header p-4 border-b border-gray-200" onclick="toggleEndpoint('csv-simulation-ws-content')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="method-badge method-websocket">WebSocket</span>
+                                        <span class="font-mono text-lg">/csv/simulation-ws</span>
+                                    </div>
+                                    <svg class="w-5 h-5 transform transition-transform duration-200" id="csv-simulation-ws-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="csv-simulation-ws-content" class="hidden p-6">
+                                <p class="text-gray-700 mb-4">Real-time streaming WebSocket endpoint for ML model simulation results.</p>
+                                
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Protocol</h4>
+                                        <p class="text-gray-600">WebSocket (<code>ws://</code>)</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Client Messages</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Start Simulation:</p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>{
+  "action": "start",
+  "userId": "string",
+  "datasetId": "string"
+}</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Stop Simulation:</p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>{
+  "action": "stop", 
+  "userId": "string",
+  "datasetId": "string"
+}</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Server Messages</h4>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Simulation Result (streaming):</p>
+                                                <div class="code-block">
+                                                    <pre class="language-json"><code>{
+  "rowIndex": 0,
+  "prediction": 0,
+  "confidence": 0.0,
+  "actual": 0,
+  "isCorrect": true,
+  "timestamp": "string"
+}</code></pre>
+                                                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Status Messages:</p>
+                                                <div class="space-y-2">
+                                                    <div class="code-block">
+                                                        <pre class="language-json"><code>{"status": "stopped"}</code></pre>
+                                                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                    </div>
+                                                    <div class="code-block">
+                                                        <pre class="language-json"><code>{"status": "finished"}</code></pre>
+                                                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                    </div>
+                                                    <div class="code-block">
+                                                        <pre class="language-json"><code>{"status": "stopping"}</code></pre>
+                                                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-700 mb-2">Error Messages:</p>
+                                                <div class="space-y-2">
+                                                    <div class="code-block">
+                                                        <pre class="language-json"><code>{"error": "userId and datasetId are required."}</code></pre>
+                                                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                    </div>
+                                                    <div class="code-block">
+                                                        <pre class="language-json"><code>{"error": "An unexpected error occurred during simulation: {error}"}</code></pre>
+                                                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Prism.js
+        Prism.highlightAll();
+
+        // Toggle endpoint content
+        function toggleEndpoint(contentId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(contentId.replace('-content', '-icon'));
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Copy to clipboard functionality
+        function copyToClipboard(button) {
+            const codeBlock = button.previousElementSibling;
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.backgroundColor = '#10b981';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.backgroundColor = '#374151';
+                }, 2000);
+            });
+        }
+
+        // Sidebar navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('.sidebar-link');
+            const sections = document.querySelectorAll('.content-section');
+
+            // Handle sidebar link clicks
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                        
+                        // Update active link
+                        links.forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                    }
+                });
+            });
+
+            // Intersection Observer for automatic highlighting
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        const correspondingLink = document.querySelector(`a[href="#${id}"]`);
+                        
+                        if (correspondingLink) {
+                            links.forEach(l => l.classList.remove('active'));
+                            correspondingLink.classList.add('active');
+                        }
+                    }
+                });
+            }, {
+                rootMargin: '-20% 0px -70% 0px'
+            });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

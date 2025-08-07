@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpRequest, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, forkJoin, from, Observable, switchMap } from 'rxjs';
+import { catchError, EMPTY, forkJoin, from, Observable, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment.development';
 import { v4 as uuidv4 } from 'uuid';
 // import * as pako from 'pako';
@@ -84,36 +84,87 @@ export class UploadService {
   // }
 
   // The master function for chunked uploads
-  uploadFileWithProgress(file: File, userId: string): Observable<any> {
-    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const uploadId = uuidv4(); // A unique ID for this specific upload
-    const chunkRequests: Observable<any>[] = [];
+  // uploadFileWithProgress(file: File, userId: string): Observable<any> {
+  //   const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
+  //   const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  //   const uploadId = uuidv4(); // A unique ID for this specific upload
+  //   const chunkRequests: Observable<any>[] = [];
 
-    console.log(`Starting chunked upload for ${file.name} with ID: ${uploadId}`);
-    console.log(`Total chunks: ${totalChunks}`);
+  //   console.log(`Starting chunked upload for ${file.name} with ID: ${uploadId}`);
+  //   console.log(`Total chunks: ${totalChunks}`);
 
-    for (let i = 0; i < totalChunks; i++) {
-      const start = i * CHUNK_SIZE;
-      const end = Math.min(start + CHUNK_SIZE, file.size);
-      const chunk = file.slice(start, end);
+  //   for (let i = 0; i < totalChunks; i++) {
+  //     const start = i * CHUNK_SIZE;
+  //     const end = Math.min(start + CHUNK_SIZE, file.size);
+  //     const chunk = file.slice(start, end);
 
-      chunkRequests.push(this.uploadChunk(chunk, i, uploadId, userId));
-    }
+  //     chunkRequests.push(this.uploadChunk(chunk, i, uploadId, userId));
+  //   }
 
-    // `forkJoin` executes all chunk uploads in parallel and waits for them to complete.
-    return forkJoin(chunkRequests).pipe(
-      // When all chunks are uploaded, call the 'finish' endpoint
-      switchMap(responses => {
-        console.log("All chunks uploaded successfully. Finishing upload...");
-        return this.finishUpload(uploadId, file.name, userId, totalChunks);
-      }),
-      catchError(error => {
-        console.error("Error during chunk upload:", error);
-        // You can add more robust error handling or retry logic here
-        throw new Error("Chunk upload failed.");
-      })
-    );
+  //   // `forkJoin` executes all chunk uploads in parallel and waits for them to complete.
+  //   return forkJoin(chunkRequests).pipe(
+  //     // When all chunks are uploaded, call the 'finish' endpoint
+  //     switchMap(responses => {
+  //       console.log("All chunks uploaded successfully. Finishing upload...");
+  //       return this.finishUpload(uploadId, file.name, userId, totalChunks);
+  //     }),
+  //     catchError(error => {
+  //       console.error("Error during chunk upload:", error);
+  //       // You can add more robust error handling or retry logic here
+  //       throw new Error("Chunk upload failed.");
+  //     })
+  //   );
+  // }
+
+  uploadFileWithProgress(file: File, userId: string): Observable<number | UploadResult> {
+    return new Observable(observer => {
+      const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      const uploadId = uuidv4();
+      let chunksUploaded = 0;
+
+      console.log(`Starting chunked upload for ${file.name} with ID: ${uploadId}`);
+      console.log(`Total chunks: ${totalChunks}`);
+
+      const chunkRequests: Observable<any>[] = [];
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunk = file.slice(start, end);
+
+        // Wrap each chunk upload to report progress on its completion
+        chunkRequests.push(this.uploadChunk(chunk, i, uploadId, userId).pipe(
+          tap(() => {
+            chunksUploaded++;
+            // Calculate progress up to 99% as chunks upload
+            const progress = Math.round((chunksUploaded / totalChunks) * 100);
+            observer.next(progress);
+          })
+        ));
+      }
+
+      // forkJoin runs all chunk uploads in parallel
+      forkJoin(chunkRequests).pipe(
+        switchMap(() => {
+          console.log("All chunks uploaded successfully. Finishing upload...");
+          // When all chunks are done, call the 'finish' endpoint
+          return this.finishUpload(uploadId, file.name, userId, totalChunks);
+        }),
+        catchError(error => {
+          console.error("Error during chunk upload:", error);
+          observer.error("Chunk upload failed.");
+          return EMPTY; // Stop the observable stream on error
+        })
+      ).subscribe({
+        next: (finalResult: UploadResult) => {
+          observer.next(finalResult); // Emit the final result object
+          observer.complete();
+        },
+        error: (err) => {
+          observer.error(err);
+        }
+      });
+    });
   }
 
   private uploadChunk(chunk: Blob, chunkIndex: number, uploadId: string, userId: string): Observable<any> {

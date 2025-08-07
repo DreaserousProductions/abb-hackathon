@@ -83,6 +83,7 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
   private themeSubscription!: Subscription;
   private realtimeChart: Chart | null = null;
   private simulationSubscription!: Subscription;
+  private trainingTimer: any;
 
   constructor(private uploadService: UploadService, private simulationService: SimulationService, private themeService: ThemeService) { }
 
@@ -111,6 +112,9 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     }
     if (this.realtimeChart) {
       this.realtimeChart.destroy();
+    }
+    if (this.trainingTimer) {
+      clearInterval(this.trainingTimer);
     }
   }
 
@@ -341,31 +345,74 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     );
   }
 
+  // async trainModel(): Promise<void> {
+  //   if (!this.uploadResult) {
+  //     return;
+  //   }
+  //   if (!this.uploadResult.datasetId || !this.uploadResult.userId || !this.uploadResult.dateRange) {
+  //     console.error('Cannot train model: Missing datasetId, userId, or date ranges.');
+  //     return;
+  //   }
+  //   this.isTraining = true;
+  //   this.trainingProgress = 0;
+  //   this.trainingResults = null;
+  //   this.trainingProgress = 10;
+  //   try {
+  //     const response = await firstValueFrom(
+  //       this.uploadService.trainModel(this.uploadResult.datasetId, this.uploadResult.userId, this.dateRanges)
+  //     );
+  //     console.log(response);
+  //     this.trainingResults = response;
+  //     this.trainingProgress = 100;
+  //     this.generateConfusionMatrix();
+  //   } catch (error) {
+  //     console.error('Training API call failed:', error);
+  //     this.errorMessage = "Training API call failed (Ensure you are using the Bosch Production Line Dataset)";
+  //     this.trainingProgress = 0;
+  //   } finally {
+  //     this.isTraining = false;
+  //   }
+  // }
+
   async trainModel(): Promise<void> {
-    if (!this.uploadResult) {
+    if (!this.uploadResult?.datasetId || !this.uploadResult?.userId) {
+      console.error('Cannot train model: Missing critical data.');
       return;
     }
-    if (!this.uploadResult.datasetId || !this.uploadResult.userId || !this.uploadResult.dateRange) {
-      console.error('Cannot train model: Missing datasetId, userId, or date ranges.');
-      return;
-    }
+
     this.isTraining = true;
     this.trainingProgress = 0;
     this.trainingResults = null;
-    this.trainingProgress = 10;
+    this.errorMessage = '';
+
+    // Start a timer to simulate progress
+    this.trainingTimer = setInterval(() => {
+      // Increment progress but stop at 90% to wait for the final result
+      if (this.trainingProgress < 90) {
+        this.trainingProgress += 10;
+      }
+    }, 5000); // Executes every 5 seconds
+
     try {
       const response = await firstValueFrom(
         this.uploadService.trainModel(this.uploadResult.datasetId, this.uploadResult.userId, this.dateRanges)
       );
+
+      // When the API call completes, clear the timer and set progress to 100
+      clearInterval(this.trainingTimer);
+      this.trainingProgress = 100;
+
       console.log(response);
       this.trainingResults = response;
-      this.trainingProgress = 100;
       this.generateConfusionMatrix();
+
     } catch (error) {
       console.error('Training API call failed:', error);
-      this.errorMessage = "Training API call failed (Ensure you are using the Bosch Production Line Dataset)";
-      this.trainingProgress = 0;
+      this.errorMessage = "Training failed. Please ensure you are using a compatible dataset.";
+      this.trainingProgress = 0; // Reset progress on error
     } finally {
+      // This block runs whether the try succeeded or failed
+      clearInterval(this.trainingTimer); // Ensure the timer is always cleared
       this.isTraining = false;
     }
   }
@@ -470,20 +517,20 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     this.createMonthlyChart();
   }
 
-  getTotal(): number {
-    if (!this.confusionMatrix) return 0;
-    const { truePositive, falsePositive, falseNegative, trueNegative } = this.confusionMatrix;
-    return truePositive + falsePositive + falseNegative + trueNegative;
-  }
+  // getTotal(): number {
+  //   if (!this.confusionMatrix) return 0;
+  //   const { truePositive, falsePositive, falseNegative, trueNegative } = this.confusionMatrix;
+  //   return truePositive + falsePositive + falseNegative + trueNegative;
+  // }
 
-  getSegmentPercentage(value: number): number {
-    if (!value) return 0;
-    const total = this.getTotal();
-    if (total === 0) {
-      return 0;
-    }
-    return (value / total) * 100;
-  }
+  // getSegmentPercentage(value: number): number {
+  //   if (!value) return 0;
+  //   const total = this.getTotal();
+  //   if (total === 0) {
+  //     return 0;
+  //   }
+  //   return (value / total) * 100;
+  // }
 
   private clearIntervals(): void {
     if (this.simulationInterval) clearInterval(this.simulationInterval);
@@ -520,16 +567,48 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     this.uploadFile(file);
   }
 
+  // private uploadFile(file: File): void {
+  //   this.isUploading = true;
+  //   this.errorMessage = '';
+  //   this.uploadProgress = 0;
+  //   const userId = localStorage.getItem('username') || 'anonymous_user';
+  //   this.uploadService.uploadFileWithProgress(file, userId).subscribe({
+  //     next: (result: UploadResult) => {
+  //       this.uploadResult = result;
+  //       console.log('Upload complete!', this.uploadResult);
+  //       this.uploadProgress = 100;
+  //     },
+  //     error: (err) => {
+  //       this.errorMessage = 'Failed to upload file. Please try again.';
+  //       console.error('Upload error:', err);
+  //       this.isUploading = false;
+  //       this.uploadProgress = 0;
+  //     },
+  //     complete: () => {
+  //       this.isUploading = false;
+  //       setTimeout(() => this.uploadProgress = 0, 2000);
+  //     }
+  //   });
+  // }
+
   private uploadFile(file: File): void {
     this.isUploading = true;
     this.errorMessage = '';
     this.uploadProgress = 0;
+    this.uploadResult = null; // Reset previous result
     const userId = localStorage.getItem('username') || 'anonymous_user';
+
     this.uploadService.uploadFileWithProgress(file, userId).subscribe({
-      next: (result: UploadResult) => {
-        this.uploadResult = result;
-        console.log('Upload complete!', this.uploadResult);
-        this.uploadProgress = 100;
+      next: (event: number | UploadResult) => {
+        if (typeof event === 'number') {
+          // This is a progress update from a completed chunk
+          this.uploadProgress = event;
+        } else {
+          // This is the final result from the 'finish-upload' call
+          this.uploadResult = event;
+          this.uploadProgress = 100; // Set to 100 to trigger the processing view
+          this.isUploading = false; // Stop the overall "uploading" state
+        }
       },
       error: (err) => {
         this.errorMessage = 'Failed to upload file. Please try again.';
@@ -538,8 +617,8 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
         this.uploadProgress = 0;
       },
       complete: () => {
-        this.isUploading = false;
-        setTimeout(() => this.uploadProgress = 0, 2000);
+        console.log('Upload process observable completed.');
+        // The 'isUploading' flag is now handled in the 'next' block
       }
     });
   }
@@ -997,6 +1076,36 @@ export class UploadComponent implements OnDestroy, AfterViewInit {
     setTimeout(() => {
       this.updateMonthlyChart();
     }, 500);
+  }
+
+  // DOnut
+  private readonly GAP_PERCENTAGE = 0.1;
+
+  getTotal(): number {
+    if (!this.confusionMatrix) return 0;
+    const { truePositive, falsePositive, falseNegative, trueNegative } = this.confusionMatrix;
+    return truePositive + falsePositive + falseNegative + trueNegative;
+  }
+
+  // This function now calculates the length of a segment, optionally subtracting the gap
+  getSegmentPercentage(value: number, applyGap: boolean = false): number {
+    if (!value) return 0;
+    const total = this.getTotal();
+    if (total === 0) return 0;
+
+    const percentage = (value / total) * 100;
+
+    // If a segment is too small, don't apply a gap to prevent it from disappearing
+    if (applyGap && percentage > this.GAP_PERCENTAGE) {
+      return percentage - this.GAP_PERCENTAGE;
+    }
+    return percentage;
+  }
+
+  // This new function calculates the offset for the next segment, including the gap
+  getSegmentOffset(value: number): number {
+    // The offset is the full percentage of the segment, including the gap
+    return this.getSegmentPercentage(value, false);
   }
 }
 
