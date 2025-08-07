@@ -4,7 +4,7 @@ IntelliInspect is a comprehensive AI-powered application that enables real-time 
 
 ## Architecture Overview
 
-![Architecture Diagram](data/arch.histicated three-tier architecture orchestrating an Angular frontend, .NET Core backend, and Python FastAPI ML service. The system handles large-scale data processing through chunked uploads, trains XGBoost models for defect prediction, and provides real-time simulation streaming through WebSocket connections—all containerized and deployed using Docker Compose.
+![Architecture Diagram](data/Diagrams/Software%20Architecture%20Diagram.png) Three-tier architecture orchestrating an Angular frontend, .NET Core backend, and Python FastAPI ML service. The system handles large-scale data processing through chunked uploads, trains XGBoost models for defect prediction, and provides real-time simulation streaming through WebSocket connections—all containerized and deployed using Docker Compose.
 
 ## Features Scorecard
 
