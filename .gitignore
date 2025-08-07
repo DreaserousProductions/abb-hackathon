@@ -9,6 +9,7 @@ temp_chunks/
 temp_uploads/
 
 # ml_service/
+data.zip
 
 *.pyc
 .env
