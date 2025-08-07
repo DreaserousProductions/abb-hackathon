@@ -4,7 +4,7 @@ IntelliInspect is a comprehensive AI-powered application that enables real-time 
 
 ## Architecture Overview
 
-![Architecture Diagram](data/Diagrams/Software%20Architecture%20Diagram.png) Three-tier architecture orchestrating an Angular frontend, .NET Core backend, and Python FastAPI ML service. The system handles large-scale data processing through chunked uploads, trains XGBoost models for defect prediction, and provides real-time simulation streaming through WebSocket connections—all containerized and deployed using Docker Compose.
+![Architecture Diagram](docs/Diagrams/Software%20Architecture%20Diagram.png) Three-tier architecture orchestrating an Angular frontend, .NET Core backend, and Python FastAPI ML service. The system handles large-scale data processing through chunked uploads, trains XGBoost models for defect prediction, and provides real-time simulation streaming through WebSocket connections—all containerized and deployed using Docker Compose.
 
 ## Features Scorecard
 
@@ -41,7 +41,7 @@ IntelliInspect is a comprehensive AI-powered application that enables real-time 
 
 ## Data Flow Overview
 
-![Data Flow Diagram](data/Diagrams/Data%20Flow%20Diagram.png) Data flow architecture demonstrates how information moves through the system from initial CSV upload through chunked processing, model training, and real-time simulation streaming. The system employs a sophisticated proxy pattern where the .NET backend orchestrates communication between the Angular frontend and Python ML service, ensuring secure, scalable data processing.
+![Data Flow Diagram](docs/Diagrams/Data%20Flow%20Diagram.png) Data flow architecture demonstrates how information moves through the system from initial CSV upload through chunked processing, model training, and real-time simulation streaming. The system employs a sophisticated proxy pattern where the .NET backend orchestrates communication between the Angular frontend and Python ML service, ensuring secure, scalable data processing.
 
 ## Deployment Instructions
 
