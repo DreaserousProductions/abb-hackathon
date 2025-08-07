@@ -41,7 +41,7 @@ IntelliInspect is a comprehensive AI-powered application that enables real-time 
 
 ## Data Flow Overview
 
-![Data Flow Diagram](data/data flow architecture demonstrates how information moves through the system from initial CSV upload through chunked processing, model training, and real-time simulation streaming. The system employs a sophisticated proxy pattern where the .NET backend orchestrates communication between the Angular frontend and Python ML service, ensuring secure, scalable data processing.
+![Data Flow Diagram](data/Diagrams/Data%20Flow%20Diagram.png) Data flow architecture demonstrates how information moves through the system from initial CSV upload through chunked processing, model training, and real-time simulation streaming. The system employs a sophisticated proxy pattern where the .NET backend orchestrates communication between the Angular frontend and Python ML service, ensuring secure, scalable data processing.
 
 ## Deployment Instructions
 
